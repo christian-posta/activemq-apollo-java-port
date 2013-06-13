@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.activemq</groupId>
+    <artifactId>apollo-project-java</artifactId>
+    <version>98-trunk-SNAPSHOT</version>
+  </parent>
+
+  <groupId>org.apache.activemq</groupId>
+  <artifactId>apollo-dto</artifactId>
+  <version>98-trunk-SNAPSHOT</version>
+  <!-- <packaging>bundle</packaging> -->
+
+  <name>${project.artifactId}</name>
+
+  <properties>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.fusesource.hawtbuf</groupId>
+      <artifactId>hawtbuf</artifactId>
+      <version>${hawtbuf-version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>apollo-util</artifactId>
+      <version>98-trunk-SNAPSHOT</version>
+    </dependency>
+
+    <!-- Testing Dependencies -->    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+      <version>${junit-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <scope>test</scope>
+      <version>${log4j-version}</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+  
+    <resources>
+      <resource>
+        <directory>target/schema</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+      
+    <plugins>
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <configuration>
+              <tasks>
+                <taskdef name="schemagen" classname="com.sun.tools.jxc.SchemaGenTask">
+                  <classpath refid="maven.compile.classpath" />
+                </taskdef>
+                <mkdir dir="${project.build.directory}/schema/org/apache/activemq/apollo/dto" />
+                <schemagen srcdir="${basedir}/.." destdir="${project.build.directory}/schema/org/apache/activemq/apollo/dto" includeantruntime="false">
+                  <schema namespace="http://activemq.apache.org/schema/activemq/apollo" file="apollo.xsd" />
+                  <classpath refid="maven.compile.classpath" />
+                  <include name="**/package-info.java" />
+                  <include name="**/*DTO.java" />
+                  <exclude name="**/.git/**" />
+                  <exclude name="**/.svn/**" />
+                </schemagen>
+                
+                <replace token="&lt;xs:sequence&gt;" value="&lt;xs:choice minOccurs=&quot;0&quot; maxOccurs=&quot;unbounded&quot;&gt;&lt;xs:choice&gt;" dir="${basedir}/target/schema/org/apache/activemq/apollo/dto">
+                  <include name="**/*.xsd" />
+                </replace>
+                <replace token="&lt;/xs:sequence&gt;" value="&lt;/xs:choice&gt;&lt;/xs:choice&gt;" dir="${basedir}/target/schema/org/apache/activemq/apollo/dto">
+                  <include name="**/*.xsd" />
+                </replace>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+           <dependency>
+              <groupId>javax.xml.bind</groupId>
+              <artifactId>jaxb-api</artifactId>
+              <version>${jaxb-api-version}</version>
+           </dependency>
+           <dependency>
+              <groupId>com.sun.xml.bind</groupId>
+              <artifactId>jaxb-impl</artifactId>
+              <version>${jaxb-version}</version>
+           </dependency>
+           <dependency>
+              <groupId>com.sun.xml.bind</groupId>
+              <artifactId>jaxb-xjc</artifactId>
+              <version>${jaxb-version}</version>
+           </dependency>
+        </dependencies>      
+      </plugin>
+
+    </plugins>
+  </build>
+  
+  <profiles>
+    <profile>
+      <id>jdk-1.5</id>
+      <activation>
+        <jdk>1.5</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+          <version>${jaxb-api-version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.sun.xml.bind</groupId>
+          <artifactId>jaxb-impl</artifactId>
+          <version>${jaxb-version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    
+   <profile>
+      <id>ibmjdk</id>
+      <activation>
+        <file>
+          <exists>${java.home}/../lib/tools.jar</exists>
+        </file>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-antrun-plugin</artifactId>
+              <dependencies>
+                <dependency>
+                  <groupId>com.sun</groupId>
+                  <artifactId>tools</artifactId>
+                  <!--the real JDK version could be 1.5 or 1.6-->
+                  <version>1.5.0</version>
+                  <scope>system</scope>
+                  <optional>true</optional>
+                  <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+              </dependencies>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
+
+</project>
