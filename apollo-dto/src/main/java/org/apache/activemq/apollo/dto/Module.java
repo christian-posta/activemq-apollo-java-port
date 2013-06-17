@@ -25,10 +25,16 @@ import org.apache.activemq.apollo.util.DtoModule;
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
  */
 public class Module implements DtoModule {
-    public String dto_package() {
+
+
+    @Override
+    public String dtoPackage() {
         return "org.apache.activemq.apollo.dto";
+
     }
-    public Class<?>[] extension_classes() {
+
+    @Override
+    public Class<?>[] extensionClasses() {
         return new Class<?>[]{
                 AcceptingConnectorDTO.class,
                 TopicDestinationDTO.class,

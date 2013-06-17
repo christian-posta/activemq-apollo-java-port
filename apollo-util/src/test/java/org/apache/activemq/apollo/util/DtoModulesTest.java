@@ -18,6 +18,8 @@ package org.apache.activemq.apollo.util;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
@@ -25,7 +27,11 @@ public class DtoModulesTest {
 
     @Test
     public void testLoadDtoModules() {
-        Class<?>[] modules =  DtoModules.INSTANCE.extensionClasses();
+        String[] pacakges = DtoModules.INSTANCE.packages();
+        assertEquals(3, pacakges.length);
+
+        Class<?>[] modules = DtoModules.INSTANCE.extensionClasses();
+        assertEquals(9, modules.length);
 
     }
 }

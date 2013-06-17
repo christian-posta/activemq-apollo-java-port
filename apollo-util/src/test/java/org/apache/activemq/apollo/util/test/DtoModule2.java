@@ -24,11 +24,14 @@ import org.apache.activemq.apollo.util.DtoModule;
 public class DtoModule2 implements DtoModule {
     @Override
     public String dtoPackage() {
-        return null;
+        return "org.apache.activemq.apollo.util.test";
+
     }
 
     @Override
     public Class<?>[] extensionClasses() {
-        return new Class<?>[0];
+        return new Class<?>[]{ DtoModule3.class, DtoModule2.class, DtoModule1.class };
+
+
     }
 }

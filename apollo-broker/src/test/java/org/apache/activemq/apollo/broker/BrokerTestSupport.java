@@ -38,7 +38,7 @@ public class BrokerTestSupport {
     }
 
     public static int connectorPort(Broker broker, String connector) {
-
+        return 61612;
     }
 
     protected int connectorPort(String connector) {

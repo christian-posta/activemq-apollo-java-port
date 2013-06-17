@@ -17,7 +17,7 @@
 package org.apache.activemq.apollo.dto;
 
 import org.apache.activemq.apollo.util.ClassFinder;
-import org.apache.activemq.apollo.util.DtoModule$;
+import org.apache.activemq.apollo.util.DtoModules;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -90,7 +90,7 @@ public class XmlCodec {
 
     private static JAXBContext createContext() throws JAXBException {
         String packages = "";
-        for ( String p : DtoModule$.MODULE$.packages()) {
+        for ( String p : DtoModules.INSTANCE.packages()) {
             if( packages.length() !=0 ) {
                 packages += ":";
             }
@@ -118,7 +118,7 @@ public class XmlCodec {
     static public <T> T decode(Class<T> clazz, InputStream is, Properties props, ValidationEventHandler validationHandler) throws IOException, XMLStreamException, JAXBException, SAXException {
         ClassLoader original = Thread.currentThread().getContextClassLoader();
         try {
-            Thread.currentThread().setContextClassLoader(ClassFinder.class_loader());
+            Thread.currentThread().setContextClassLoader(ClassFinder.getDefaultClassLoader());
             if (is == null) {
                 throw new IllegalArgumentException("input stream was null");
             }
@@ -154,7 +154,7 @@ public class XmlCodec {
     static public void encode(Object in, OutputStream os, boolean format) throws JAXBException {
         ClassLoader original = Thread.currentThread().getContextClassLoader();
         try {
-            Thread.currentThread().setContextClassLoader(ClassFinder.class_loader());
+            Thread.currentThread().setContextClassLoader(ClassFinder.getDefaultClassLoader());
             Marshaller marshaller = context().createMarshaller();
             if( format ) {
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, java.lang.Boolean.TRUE);

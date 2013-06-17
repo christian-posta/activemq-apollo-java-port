@@ -108,8 +108,8 @@ public class ClassFinder<T> {
         }
     }
 
-    private ClassLoader getDefaultClassLoader() {
-        ClassLoader rc = getClass().getClassLoader();
+    public static ClassLoader getDefaultClassLoader() {
+        ClassLoader rc = ClassFinder.class.getClassLoader();
         if (rc == null) {
             return ClassLoader.getSystemClassLoader();
         }
