@@ -22,6 +22,11 @@ import org.junit.Test;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.apache.activemq.apollo.stomp.test.RegexMatcher.regex;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertThat;
+
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
@@ -32,6 +37,11 @@ public class StompParallelTest extends BrokerTestSupport {
     @Test
     public void testConnect() {
         connect("1.0");
+    }
+
+    @Test
+    public void testConnect11() {
+        connect("1.1");
     }
 
     public StompClient connect(String version) {
@@ -48,8 +58,9 @@ public class StompParallelTest extends BrokerTestSupport {
         }
 
         String frame = connectRequest(version, c, headers, connector);
-
-        // do some asserts here
+        assertThat(frame, startsWith("CONNECTED\n"));
+        assertThat(frame, regex("session:.+?\\n"));
+        assertThat(frame, containsString("version:" + version + "\n"));
 
         return c;
     }
