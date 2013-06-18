@@ -14,35 +14,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.util;
 
-import org.apache.activemq.apollo.dto.BrokerDTO;
-import org.apache.activemq.apollo.util.BaseService;
+import org.junit.Test;
 
 import java.io.File;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class Broker extends BaseService{
-    private BrokerDTO config;
+public class ApolloTestSupport {
 
-    private File tmp;
+    public File getBaseDir() {
+        try {
 
-    public BrokerDTO getConfig() {
-        return config;
+            File file = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getFile());
+            file = new File(new File(file, ".."), "..").getCanonicalFile();
+
+            if (file.isDirectory()) {
+                return file;
+            } else {
+                return new File(".");
+            }
+
+        } catch (Exception e) {
+            return new File(".");
+        }
+
     }
 
-    public void setConfig(BrokerDTO config) {
-        this.config = config;
+    public String getBaseDirAsString() {
+        return getBaseDir().getPath();
     }
 
-    public File getTmp() {
-        return tmp;
+    public File getTestDataDir() {
+        return new File(getBaseDir(), "target/test-data" + getClass().getName());
     }
-
-    public void setTmp(File tmp) {
-        this.tmp = tmp;
-    }
-
 }

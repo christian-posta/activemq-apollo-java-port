@@ -14,35 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.util;
 
-import org.apache.activemq.apollo.dto.BrokerDTO;
-import org.apache.activemq.apollo.util.BaseService;
-
-import java.io.File;
+import java.util.List;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class Broker extends BaseService{
-    private BrokerDTO config;
+public class FunctionUtils {
 
-    private File tmp;
+    public static String mkString(List<?> items, String delimiter) {
+        StringBuilder builder = new StringBuilder();
 
-    public BrokerDTO getConfig() {
-        return config;
+        for (int i = 0; i < items.size(); i++) {
+            builder.append(items.get(i).toString());
+
+            if (i + 1 < items.size()) {
+                builder.append(delimiter);
+            }
+        }
+
+        return builder.toString();
     }
-
-    public void setConfig(BrokerDTO config) {
-        this.config = config;
-    }
-
-    public File getTmp() {
-        return tmp;
-    }
-
-    public void setTmp(File tmp) {
-        this.tmp = tmp;
-    }
-
 }

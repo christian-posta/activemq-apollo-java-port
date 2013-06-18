@@ -16,7 +16,7 @@
  */
 package org.apache.activemq.apollo.broker;
 
-import org.apache.activemq.apollo.URISupport;
+import org.apache.activemq.apollo.util.URISupport;
 import org.apache.activemq.apollo.dto.BrokerDTO;
 import org.apache.activemq.apollo.dto.XmlCodec;
 

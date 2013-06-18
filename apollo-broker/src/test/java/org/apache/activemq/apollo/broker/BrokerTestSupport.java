@@ -16,25 +16,62 @@
  */
 package org.apache.activemq.apollo.broker;
 
+import org.apache.activemq.apollo.util.ApolloTestSupport;
+import org.apache.activemq.apollo.util.ServiceControl;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class BrokerTestSupport {
+public class BrokerTestSupport extends ApolloTestSupport {
+
+    // todo:ceposta:priority=10 figure out how to speed up tests:
+    // + parallelize
+    // + only bring up broker one time when starting, and close when ending
+    // todo:ceposta:priority=10 check to see if we can write our own @RunWith runner
+
+    private Logger LOG = LoggerFactory.getLogger(getClass().getName());
+
 
     static Broker broker;
     protected int port = 0;
     private static String brokerConfigUri = "xml:classpath:apollo.xml";
 
-    @BeforeClass
-    public static void beforeAll() {
+    private static Broker createBroker(){
         Properties props = new Properties(System.getProperties());
         props.setProperty("testdatadir", "");
-        ApolloBrokerFactory.createBroker(brokerConfigUri, props);
+        return ApolloBrokerFactory.createBroker(brokerConfigUri, props);
+    }
+
+    @Before
+    public void before() {
+        initBroker();
+    }
+
+    private void initBroker() {
+        LOG.info("Starting broker...");
+        try {
+            broker = createBroker();
+            broker.setTmp(new File(getTestDataDir(), "tmp"));
+            broker.getTmp().mkdirs();
+            ServiceControl.start(broker);
+        } catch (Exception e) {
+
+        }
+    }
+
+    @After
+    public void after() {
+        ServiceControl.stop(broker);
     }
 
     @AfterClass

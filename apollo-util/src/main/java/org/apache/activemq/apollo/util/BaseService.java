@@ -14,35 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.util;
 
-import org.apache.activemq.apollo.dto.BrokerDTO;
-import org.apache.activemq.apollo.util.BaseService;
 
-import java.io.File;
+import org.fusesource.hawtdispatch.Task;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class Broker extends BaseService{
-    private BrokerDTO config;
+public abstract class BaseService implements Service {
 
-    private File tmp;
-
-    public BrokerDTO getConfig() {
-        return config;
+    @Override
+    public void start(Task onComplete) throws Exception {
     }
 
-    public void setConfig(BrokerDTO config) {
-        this.config = config;
+    @Override
+    public void stop(Task onComplete) throws Exception {
     }
 
-    public File getTmp() {
-        return tmp;
+    @Override
+    public Throwable service_failure() {
+        return null;
     }
-
-    public void setTmp(File tmp) {
-        this.tmp = tmp;
-    }
-
 }
