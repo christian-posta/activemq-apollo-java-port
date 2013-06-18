@@ -90,7 +90,7 @@ public class XmlCodec {
 
     private static JAXBContext createContext() throws JAXBException {
         String packages = "";
-        for ( String p : DtoModules.INSTANCE.packages()) {
+        for ( String p : DtoModules.packages()) {
             if( packages.length() !=0 ) {
                 packages += ":";
             }

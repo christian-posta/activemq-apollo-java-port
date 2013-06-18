@@ -27,10 +27,10 @@ public class DtoModulesTest {
 
     @Test
     public void testLoadDtoModules() {
-        String[] pacakges = DtoModules.INSTANCE.packages();
+        String[] pacakges = DtoModules.packages();
         assertEquals(3, pacakges.length);
 
-        Class<?>[] modules = DtoModules.INSTANCE.extensionClasses();
+        Class<?>[] modules = DtoModules.extensionClasses();
         assertEquals(9, modules.length);
 
     }

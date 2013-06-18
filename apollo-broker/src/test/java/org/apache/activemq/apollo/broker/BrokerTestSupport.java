@@ -19,6 +19,8 @@ package org.apache.activemq.apollo.broker;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import java.util.Properties;
+
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
@@ -26,15 +28,18 @@ public class BrokerTestSupport {
 
     static Broker broker;
     protected int port = 0;
+    private static String brokerConfigUri = "xml:classpath:apollo.xml";
 
     @BeforeClass
     public static void beforeAll() {
-
+        Properties props = new Properties(System.getProperties());
+        props.setProperty("testdatadir", "");
+        ApolloBrokerFactory.createBroker(brokerConfigUri, props);
     }
 
     @AfterClass
     public static void afterAll() {
-
+        // todo:ceposta NEXT STEP... continue putting together broker support and slowly implementing broker
     }
 
     public static int connectorPort(Broker broker, String connector) {

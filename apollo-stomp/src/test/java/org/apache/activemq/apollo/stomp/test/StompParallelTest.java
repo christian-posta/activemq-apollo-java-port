@@ -16,23 +16,13 @@
  */
 package org.apache.activemq.apollo.stomp.test;
 
-import org.apache.activemq.apollo.broker.BrokerTestSupport;
 import org.junit.Test;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import static org.apache.activemq.apollo.stomp.test.RegexMatcher.regex;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class StompParallelTest extends BrokerTestSupport {
+public class StompParallelTest extends StompTestSupport {
 
-    private List<StompClient> clients = new LinkedList<StompClient>();
 
     @Test
     public void testConnect() {
@@ -42,55 +32,6 @@ public class StompParallelTest extends BrokerTestSupport {
     @Test
     public void testConnect11() {
         connect("1.1");
-    }
-
-    public StompClient connect(String version) {
-        StompClient c = new StompClient();
-        connect(version, c, null, null);
-        return c;
-    }
-
-    public StompClient connect(String version, StompClient c, String headers, String connector) {
-        c.setVersion(version);
-
-        if (headers == null) {
-            headers = "";
-        }
-
-        String frame = connectRequest(version, c, headers, connector);
-        assertThat(frame, startsWith("CONNECTED\n"));
-        assertThat(frame, regex("session:.+?\\n"));
-        assertThat(frame, containsString("version:" + version + "\n"));
-
-        return c;
-    }
-
-    private String connectRequest(String version, StompClient c, String headers, String connector) {
-        int port = connectorPort(connector);
-        port = port == 0 ? this.port : port;
-
-        c.open("localhost", port);
-        writeConnectFrame(c, version, headers);
-        clients.add(c);
-        return c.receive();
-    }
-
-    private void writeConnectFrame(StompClient c, String version, String headers) {
-        if ("1.0".equals(version)) {
-            c.write(
-                    "CONNECT\n" +
-                    headers +
-                    "\n");
-        } else if ("1.1".equals(version) || "1.2".equals(version)) {
-            c.write(
-                    "CONNECT\n" +
-                            "accept-version:"+version+"\n" +
-                            "host:localhost\n" +
-                            headers +
-                            "\n");
-        } else {
-            throw new RuntimeException("Invalid STOMP version:  " + version);
-        }
     }
 
 

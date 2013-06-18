@@ -41,7 +41,7 @@ public class ApolloTypeIdResolver implements TypeIdResolver {
         this.baseType = baseType;
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         classes.add(baseType.getRawClass());
-        classes.addAll(Arrays.asList(DtoModules.INSTANCE.extensionClasses()));
+        classes.addAll(Arrays.asList(DtoModules.extensionClasses()));
         for ( Class<?> c : classes) {
             if( baseType.getRawClass().isAssignableFrom(c) ) {
                 JsonTypeName jsonAnnoation = c.getAnnotation(JsonTypeName.class);

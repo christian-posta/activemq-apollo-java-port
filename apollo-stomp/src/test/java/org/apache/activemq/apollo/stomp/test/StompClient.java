@@ -128,12 +128,12 @@ public class StompClient {
         throw new IllegalStateException("Socket closed, couldn't complete skipping", new EOFException());
     }
 
-    public void receive(int timeout) {
+    public String receive(int timeout) {
         int original = 0;
         try {
             original = socket.getSoTimeout();
             socket.setSoTimeout(timeout);
-            receive();
+            return receive();
         }catch (SocketException e) {
             throw new IllegalStateException("Could not alter socket timeout settings");
         } finally {

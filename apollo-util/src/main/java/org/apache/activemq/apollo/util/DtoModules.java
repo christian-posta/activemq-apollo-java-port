@@ -23,13 +23,11 @@ import java.util.List;
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public enum  DtoModules {
+public final class DtoModules {
 
-    INSTANCE;
+    private static ClassFinder<DtoModule> finder = new ClassFinder("META-INF/services/org.apache.activemq.apollo/dto-module.index", DtoModule.class);
 
-    private ClassFinder<DtoModule> finder = new ClassFinder("META-INF/services/org.apache.activemq.apollo/dto-module.index", DtoModule.class);
-
-    public String[] packages() {
+    public static String[] packages() {
         List<DtoModule> singletons = finder.getSingletons();
         String[] rc = new String[singletons.size()];
         for (int i = 0; i < singletons.size(); i++) {
@@ -38,7 +36,7 @@ public enum  DtoModules {
         return rc;
     }
 
-    public Class<?>[] extensionClasses(){
+    public static Class<?>[] extensionClasses(){
         List<DtoModule> singletons = finder.getSingletons();
         LinkedList<Class<?>> rcList = new LinkedList<Class<?>>();
 
