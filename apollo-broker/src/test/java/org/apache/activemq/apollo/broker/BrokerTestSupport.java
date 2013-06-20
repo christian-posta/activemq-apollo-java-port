@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -65,7 +66,7 @@ public class BrokerTestSupport extends ApolloTestSupport {
             broker.getTmp().mkdirs();
             ServiceControl.start(broker);
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
 
@@ -76,11 +77,17 @@ public class BrokerTestSupport extends ApolloTestSupport {
 
     @AfterClass
     public static void afterAll() {
-        // todo:ceposta NEXT STEP... continue putting together broker support and slowly implementing broker
+        // todo:ceposta... continue putting together broker support and slowly implementing broker
     }
 
     public static int connectorPort(Broker broker, String connector) {
-        return 61612;
+        if (broker.getConnectors().containsKey(connector)) {
+            Connector conn = broker.getConnectors().get(connector);
+            return ((InetSocketAddress)conn.getSocketAddress()).getPort();
+
+        }else {
+            return 0;
+        }
     }
 
     protected int connectorPort(String connector) {

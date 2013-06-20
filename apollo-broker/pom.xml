@@ -71,7 +71,11 @@
             <artifactId>hawtbuf-proto</artifactId>
             <version>${hawtbuf-version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.fusesource.hawtdispatch</groupId>
+            <artifactId>hawtdispatch-transport</artifactId>
+            <version>${hawtdispatch-version}</version>
+        </dependency>
         <!-- Testing dependencies -->
         <dependency>
             <groupId>junit</groupId>

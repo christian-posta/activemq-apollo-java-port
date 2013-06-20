@@ -14,35 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker.transport;
 
-
-import org.fusesource.hawtdispatch.Task;
 
 /**
- * The core lifecyle interface for ActiveMQ components.
- *
- * @version $Revision: 1.1 $
+ * A listener of services being added or removed from a network
+ * 
  */
-public interface Service {
+public interface DiscoveryListener {
 
-    /**
-     * Starts the service.  Executes the onComplete runnable once the service has fully started up.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void start(Task onComplete);
+    void onServiceAdd(DiscoveryEvent event);
 
-    /**
-     * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void stop(Task onComplete);
-
-    /**
-     * @return the error that caused the service to not start.
-     */
-    public Throwable serviceFailure();
+    void onServiceRemove(DiscoveryEvent event);
 
 }

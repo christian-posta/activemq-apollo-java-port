@@ -84,7 +84,6 @@ public class StompClient {
         try {
             socket.close();
         } catch (IOException e) {
-            //todo:ceposta:stomp log the error that we couldn't close
         }
     }
 

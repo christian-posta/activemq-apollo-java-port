@@ -14,35 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker.transport;
 
+import org.apache.activemq.apollo.util.IntrospectionSupport;
+import org.fusesource.hawtdispatch.transport.Transport;
 
-import org.fusesource.hawtdispatch.Task;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * The core lifecyle interface for ActiveMQ components.
- *
- * @version $Revision: 1.1 $
+ * <a href="http://hiramchirino.com">Hiram Chirino</a>
  */
-public interface Service {
+public class  TransportFactorySupport {
 
-    /**
-     * Starts the service.  Executes the onComplete runnable once the service has fully started up.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void start(Task onComplete);
+    static public Transport configure(Transport transport, Map<String, String> options) throws IOException {
+        IntrospectionSupport.setProperties(transport, new HashMap(options));
+        return transport;
+    }
 
-    /**
-     * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void stop(Task onComplete);
-
-    /**
-     * @return the error that caused the service to not start.
-     */
-    public Throwable serviceFailure();
+    public static Transport verify(Transport transport, Map<String, String> options) {
+        if (!options.isEmpty()) {
+            throw new IllegalArgumentException("Invalid connect parameters: " + options);
+        }
+        return transport;
+    }
 
 }

@@ -14,35 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker.transport;
 
+import org.apache.activemq.apollo.util.ClassFinder;
 
-import org.fusesource.hawtdispatch.Task;
+public class DiscoveryAgentFactory {
 
-/**
- * The core lifecyle interface for ActiveMQ components.
- *
- * @version $Revision: 1.1 $
- */
-public interface Service {
+    public interface Provider {
+        public DiscoveryAgent create(String uri) throws Exception;
+    }
 
-    /**
-     * Starts the service.  Executes the onComplete runnable once the service has fully started up.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void start(Task onComplete);
+    public static final ClassFinder<Provider> providers = new ClassFinder<Provider>("META-INF/services/org.apache.activemq.apollo/discovery-agent-factory.index", Provider.class);
 
     /**
-     * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
+     * Creates a DiscoveryAgent
      */
-    void stop(Task onComplete);
-
-    /**
-     * @return the error that caused the service to not start.
-     */
-    public Throwable serviceFailure();
+    public static DiscoveryAgent create(String uri) throws Exception {
+        for( Provider provider : providers.jsingletons()) {
+          DiscoveryAgent rc = provider.create(uri);
+          if( rc!=null ) {
+            return rc;
+          }
+        }
+        throw new IllegalArgumentException("Unknown discovery agent uri: "+uri);
+    }
 
 }

@@ -16,18 +16,28 @@
  */
 package org.apache.activemq.apollo.broker;
 
+import com.sun.corba.se.impl.logging.OMGSystemException;
 import org.apache.activemq.apollo.dto.BrokerDTO;
+import org.apache.activemq.apollo.util.ApolloThreadPool;
 import org.apache.activemq.apollo.util.BaseService;
 
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class Broker extends BaseService{
+public class Broker extends BaseService {
     private BrokerDTO config;
 
     private File tmp;
+    private Map<String, Connector> connectors;
+    private Map<Long, BrokerConnection> connections;
+
+    public static final ThreadPoolExecutor BLOCKABLE_THREAD_POOL = ApolloThreadPool.INSTANCE;
+
+
 
     public BrokerDTO getConfig() {
         return config;
@@ -45,4 +55,19 @@ public class Broker extends BaseService{
         this.tmp = tmp;
     }
 
+    public Map<String, Connector> getConnectors() {
+        return connectors;
+    }
+
+    public void setConnectors(Map<String, Connector> connectors) {
+        this.connectors = connectors;
+    }
+
+    public Map<Long, BrokerConnection> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(Map<Long, BrokerConnection> connections) {
+        this.connections = connections;
+    }
 }

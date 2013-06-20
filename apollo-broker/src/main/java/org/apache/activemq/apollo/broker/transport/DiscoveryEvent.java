@@ -14,35 +14,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker.transport;
 
+public class DiscoveryEvent {
 
-import org.fusesource.hawtdispatch.Task;
+    protected String serviceName;
+    protected String brokerName;
 
-/**
- * The core lifecyle interface for ActiveMQ components.
- *
- * @version $Revision: 1.1 $
- */
-public interface Service {
+    public DiscoveryEvent() {
+    }
 
-    /**
-     * Starts the service.  Executes the onComplete runnable once the service has fully started up.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void start(Task onComplete);
+    public DiscoveryEvent(String serviceName) {
+        this.serviceName = serviceName;
+    }
 
     /**
-     * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
+     * @openwire:property version=1
      */
-    void stop(Task onComplete);
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
 
     /**
-     * @return the error that caused the service to not start.
+     * @openwire:property version=1
      */
-    public Throwable serviceFailure();
+    public String getBrokerName() {
+        return brokerName;
+    }
 
+    public void setBrokerName(String name) {
+        this.brokerName = name;
+    }
+
+    public boolean isMarshallAware() {
+        return false;
+    }
 }

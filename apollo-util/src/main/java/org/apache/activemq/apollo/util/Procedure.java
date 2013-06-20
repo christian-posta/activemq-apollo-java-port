@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,33 +16,10 @@
  */
 package org.apache.activemq.apollo.util;
 
-
-import org.fusesource.hawtdispatch.Task;
-
 /**
- * The core lifecyle interface for ActiveMQ components.
- *
- * @version $Revision: 1.1 $
+ * A procedure doesn't return a value, it does alter some state
+ * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface Service {
-
-    /**
-     * Starts the service.  Executes the onComplete runnable once the service has fully started up.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void start(Task onComplete);
-
-    /**
-     * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
-     *
-     * @param onComplete my be set to null if not interested in a callback.
-     */
-    void stop(Task onComplete);
-
-    /**
-     * @return the error that caused the service to not start.
-     */
-    public Throwable serviceFailure();
-
+public abstract class Procedure {
+    public abstract void execute();
 }
