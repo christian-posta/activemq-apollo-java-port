@@ -67,6 +67,11 @@
             <version>98-trunk-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>apollo-selector</artifactId>
+            <version>98-trunk-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.fusesource.hawtbuf</groupId>
             <artifactId>hawtbuf-proto</artifactId>
             <version>${hawtbuf-version}</version>

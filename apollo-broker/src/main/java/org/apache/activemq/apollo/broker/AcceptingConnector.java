@@ -227,7 +227,7 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
 
             broker.getConnections().put(connection.getId(), connection);
 
-            // todo:ceposta NEXT STEP + 1.. fill in protocol, protocolhandlers stuff, connection setters, et,
+            // todo:ceposta NEXT STEP + 0.. fill in protocol, protocolhandlers stuff, connection setters, et,
             // todo:ceposta we also need to finish up Accepting connector (finsih start, stop, update settings, etc)
         }
 

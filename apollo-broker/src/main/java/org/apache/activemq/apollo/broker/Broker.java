@@ -20,6 +20,8 @@ import com.sun.corba.se.impl.logging.OMGSystemException;
 import org.apache.activemq.apollo.dto.BrokerDTO;
 import org.apache.activemq.apollo.util.ApolloThreadPool;
 import org.apache.activemq.apollo.util.BaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Map;
@@ -29,6 +31,9 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
 public class Broker extends BaseService {
+
+    private Logger LOG = LoggerFactory.getLogger(getClass().getName());
+
     private BrokerDTO config;
 
     private File tmp;
@@ -69,5 +74,9 @@ public class Broker extends BaseService {
 
     public void setConnections(Map<Long, BrokerConnection> connections) {
         this.connections = connections;
+    }
+
+    public Logger getConnectionLog() {
+        return LOG;
     }
 }

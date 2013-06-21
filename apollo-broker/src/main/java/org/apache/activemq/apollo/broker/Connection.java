@@ -23,6 +23,5 @@ import org.fusesource.hawtdispatch.DispatchQueue;
  */
 public interface Connection {
 
-    protected void onTransportFailure();
 
 }

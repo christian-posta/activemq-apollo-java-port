@@ -14,26 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker;
 
-import org.fusesource.hawtdispatch.DispatchQueue;
+import org.apache.activemq.apollo.dto.DestinationDTO;
+import org.apache.activemq.apollo.filter.BooleanExpression;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public abstract class Dispatched {
+public interface ConsumerContext {
 
-    protected DispatchQueue dispatchQueue;
+    public String getConsumerId();
 
-    public Dispatched(DispatchQueue dispatchQueue) {
-        this.dispatchQueue = dispatchQueue;
-    }
+    public DestinationDTO getDestination();
 
-    public DispatchQueue getDispatchQueue() {
-        return dispatchQueue;
-    }
+    public String getSelector();
 
-    public void assertExecuting(){
-        dispatchQueue.assertExecuting();
-    }
+    public BooleanExpression getSelectorExpression();
+
+    public Boolean isDurable();
+
+    public String getSubscriptionName();
+
+    public Boolean shouldAutoCreateDestination();
+
+    /**
+     * What's the difference between is persistent and is durable?
+     * @return
+     */
+    public Boolean isPersistent();
 }

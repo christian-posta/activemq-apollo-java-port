@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,26 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
 
-import org.fusesource.hawtdispatch.DispatchQueue;
+package org.apache.activemq.apollo.filter;
 
-/**
- * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
- */
-public abstract class Dispatched {
+public class FilterException extends Exception {
 
-    protected DispatchQueue dispatchQueue;
+    private static final long serialVersionUID = -6892363158919485507L;
 
-    public Dispatched(DispatchQueue dispatchQueue) {
-        this.dispatchQueue = dispatchQueue;
+    public FilterException() {
+        super();
     }
 
-    public DispatchQueue getDispatchQueue() {
-        return dispatchQueue;
+    public FilterException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public void assertExecuting(){
-        dispatchQueue.assertExecuting();
+    public FilterException(String message) {
+        super(message);
     }
+
+    public FilterException(Throwable cause) {
+        super(cause);
+    }
+    
 }
