@@ -14,24 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import org.fusesource.hawtdispatch.Task;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class DtoModulesTest {
+public abstract class Sink<T> {
 
-    @Test
-    public void testLoadDtoModules() {
-        String[] pacakges = DtoModules.packages();
-        assertEquals(3, pacakges.length);
+    protected Task refiller;
 
-        Class<?>[] modules = DtoModules.extensionClasses();
-        assertEquals(3, modules.length);
+    public abstract boolean full();
+    public abstract boolean offer(T value);
+    public abstract Task refiller();
 
+    public void setRefiller(Task value) {
+        refiller = value;
     }
 }

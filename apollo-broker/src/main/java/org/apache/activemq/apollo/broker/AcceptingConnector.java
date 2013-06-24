@@ -21,10 +21,9 @@ import org.apache.activemq.apollo.broker.protocol.ProtocolFactory;
 import org.apache.activemq.apollo.broker.security.ResourceKind;
 import org.apache.activemq.apollo.broker.transport.TransportFactory;
 import org.apache.activemq.apollo.dto.*;
+import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.Task;
-import org.fusesource.hawtdispatch.transport.Transport;
-import org.fusesource.hawtdispatch.transport.TransportServer;
-import org.fusesource.hawtdispatch.transport.TransportServerListener;
+import org.fusesource.hawtdispatch.transport.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +54,8 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
     private Long deadReadCounter = 0L;
     private Long deadWriteCounter = 0L;
 
-    private Integer sendBufferSize;
-    private Integer receiveBufferSize;
+    private int lastReceiveBufferSize = 0;
+    private int lastSendBufferSize = 0;
 
     private boolean receiveBufferAutoTune = true;
     private boolean sendBufferAutoTune = true;
@@ -74,7 +73,7 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
 
 
     @Override
-    protected void _start(Task onCompleted) {
+    protected void _start(final Task onCompleted) {
         assert config != null : "Connector must be configured before it is started!";
         receiveBufferAutoTune = config.receive_buffer_auto_tune != null ? config.receive_buffer_auto_tune : true;
         sendBufferAutoTune = config.send_buffer_auto_tune != null ? config.send_buffer_auto_tune : true;
@@ -92,22 +91,62 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
         transportServer.setBlockingExecutor(Broker.BLOCKABLE_THREAD_POOL);
         transportServer.setTransportServerListener(new BrokerAcceptListener());
 
-        // todo:ceposta finsih this up... it's not finished
+        if (transportServer instanceof BrokerAware) {
+            ((BrokerAware) transportServer).setBroker(this.broker);
+        }
+
+        if (transportServer instanceof SslTransportServer) {
+            if (broker.getKeyStorage() != null) {
+                ((SslTransportServer) transportServer).setTrustManagers(broker.getKeyStorage().createTrustManagers());
+                ((SslTransportServer) transportServer).setKeyManagers(broker.getKeyStorage().createKeyManagers());
+            } else {
+                LOG.warn("You are using a transport that expects the broker's key storage to be configured.");
+            }
+        }
+
+        updateBufferSettings();
+
+        try {
+            transportServer.start(new Task() {
+
+                @Override
+                public void run() {
+                    broker.getConsoleLog().info("Accepting connections at: " + transportServer.getBoundAddress());
+                    onCompleted.run();
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
     @Override
-    protected void _stop(Task onCompleted) {
+    protected void _stop(final Task onCompleted) {
+        try {
+            transportServer.stop(new Task(){
+
+                @Override
+                public void run() {
+                    broker.getConsoleLog().info("Stopped connector at: {}", config.bind);
+                    transportServer = null;
+                    protocol = null;
+                    onCompleted.run();
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Broker getBroker() {
-        return null;
+        return broker;
     }
 
     @Override
     public String getId() {
-        return null;
+        return id;
     }
 
     @Override
@@ -116,17 +155,17 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
 
     @Override
     public ConnectorTypeDTO getConfig() {
-        return null;
+        return config;
     }
 
     @Override
     public Long getAccepted() {
-        return null;
+        return accepted;
     }
 
     @Override
     public Long getConnected() {
-        return null;
+        return connected;
     }
 
     @Override
@@ -204,6 +243,26 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
 
     @Override
     public void updateBufferSettings() {
+        if (transportServer instanceof TcpTransportServer) {
+            if (receiveBufferAutoTune) {
+                int nextReceiveBufferSize = broker.getAutoTunedSendReceiveBufferSize();
+                if (nextReceiveBufferSize != lastReceiveBufferSize) {
+                    LOG.debug("{} connector receive buffer size set to: {}", getId(), nextReceiveBufferSize);
+
+                    ((TcpTransportServer) transportServer).setReceiveBufferSize(nextReceiveBufferSize);
+                    lastReceiveBufferSize = nextReceiveBufferSize;
+                }
+            }
+
+            if (sendBufferAutoTune) {
+                int nextSendBufferSize = broker.getAutoTunedSendReceiveBufferSize();
+                if (nextSendBufferSize != lastSendBufferSize) {
+                    LOG.debug("{} connector send buffer size set to: {}", getId(), nextSendBufferSize);
+                    ((TcpTransportServer) transportServer).setSendBufferSize(nextSendBufferSize);
+                    lastSendBufferSize = nextSendBufferSize;
+                }
+            }
+        }
     }
 
     @Override
@@ -229,7 +288,22 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
 
             broker.getConnections().put(connection.getId(), connection);
 
-            // todo:ceposta we also need to finish up Accepting connector (finsih start, stop, update settings, etc)
+            broker.getCurrentPeriod().setMaxConnections(Math.max(broker.getConnections().size(), broker.getCurrentPeriod().getMaxConnections()));
+            if (broker.getCurrentPeriod().getMaxConnections() > broker.getMaxConnectionsIn5min()) {
+                broker.tuneSendReceiveBuffers();
+            }
+
+            try {
+                connection.start(Dispatch.NOOP);
+            } catch (Exception e) {
+                onAcceptError(e);
+            }
+
+            if (atConnectionLimit()) {
+                // We stop accepting connections at this point.
+                LOG.info("Connection limit reached. Clients connected: {}", connected);
+                transportServer.suspend();
+            }
         }
 
         @Override

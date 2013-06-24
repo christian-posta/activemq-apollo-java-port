@@ -73,7 +73,7 @@ public class StompClient {
         if (keyStorage != null) {
             SSLContext context = SSLContext.getInstance("TLS");
             // todo:ceposta:stomp implement keystore with java
-//            context.init(keyStorage.create_key_managers(), keyStorage.create_trust_managers(), null);
+            context.init(keyStorage.createKeyManagers(), keyStorage.createTrustManagers(), null);
             socket = context.getSocketFactory().createSocket();
         }else {
             socket = new Socket();

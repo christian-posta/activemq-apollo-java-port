@@ -15,5 +15,6 @@
 ## limitations under the License.
 ## ---------------------------------------------------------------------------
 org.apache.activemq.apollo.broker.protocol.AnyProtocol
-org.apache.activemq.apollo.broker.protocol.UdpProtocol
-org.apache.activemq.apollo.broker.protocol.SslProtocol
+
+# todo:ceposta enable org.apache.activemq.apollo.broker.protocol.UdpProtocol
+# todo:ceposta enable org.apache.activemq.apollo.broker.protocol.SslProtocol

@@ -14,8 +14,8 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ## ---------------------------------------------------------------------------
-org.apache.activemq.apollo.broker.transport.VMTransportFactory
+# todo:ceposta enable org.apache.activemq.apollo.broker.transport.VMTransportFactory
 org.apache.activemq.apollo.broker.transport.TcpTransportFactory
-org.apache.activemq.apollo.broker.transport.SslTransportFactory
-org.apache.activemq.apollo.broker.jetty.WebSocketTransportFactory
-org.apache.activemq.apollo.broker.transport.UdpTransportFactory
+# todo:ceposta enable org.apache.activemq.apollo.broker.transport.SslTransportFactory
+# todo:ceposta enable org.apache.activemq.apollo.broker.jetty.WebSocketTransportFactory
+# todo:ceposta enable org.apache.activemq.apollo.broker.transport.UdpTransportFactory

@@ -14,24 +14,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
+package org.apache.activemq.apollo.broker;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import org.fusesource.hawtdispatch.Dispatch;
+import org.fusesource.hawtdispatch.Task;
+import org.fusesource.hawtdispatch.transport.Transport;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class DtoModulesTest {
+public class TransportSink<T> extends Sink<T>{
 
-    @Test
-    public void testLoadDtoModules() {
-        String[] pacakges = DtoModules.packages();
-        assertEquals(3, pacakges.length);
+    private Transport transport;
 
-        Class<?>[] modules = DtoModules.extensionClasses();
-        assertEquals(3, modules.length);
+    public TransportSink(Transport transport) {
+        this.transport = transport;
+    }
+
+    @Override
+    public boolean full() {
+        return transport.full();
+    }
+
+    @Override
+    public Task refiller() {
+        return Dispatch.NOOP;
+    }
+
+    @Override
+    public boolean offer(Object value) {
+        return transport.offer(value);
+    }
+
+    @Override
+    public String toString() {
+        return "TransportSink(full:" + full() + ")";
 
     }
 }

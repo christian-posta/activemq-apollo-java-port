@@ -37,7 +37,7 @@ public class TransportFactory {
      * Creates a client transport.
      */
     public static Transport connect(String location) throws Exception {
-        for( Provider provider : providers.jsingletons()) {
+        for( Provider provider : providers.getSingletons()) {
           Transport rc = provider.connect(location);
           if( rc!=null ) {
             return rc;
@@ -50,7 +50,7 @@ public class TransportFactory {
      * Creates a transport server.
      */
     public static TransportServer bind(String location) throws Exception {
-        for( Provider spi : providers.jsingletons()) {
+        for( Provider spi : providers.getSingletons()) {
           TransportServer rc = spi.bind(location);
           if( rc!=null ) {
             return rc;

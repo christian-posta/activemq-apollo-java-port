@@ -30,7 +30,7 @@ public class DiscoveryAgentFactory {
      * Creates a DiscoveryAgent
      */
     public static DiscoveryAgent create(String uri) throws Exception {
-        for( Provider provider : providers.jsingletons()) {
+        for( Provider provider : providers.getSingletons()) {
           DiscoveryAgent rc = provider.create(uri);
           if( rc!=null ) {
             return rc;

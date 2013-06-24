@@ -14,24 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.util;
-
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+package org.apache.activemq.apollo.broker;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class DtoModulesTest {
+public interface BrokerAware {
 
-    @Test
-    public void testLoadDtoModules() {
-        String[] pacakges = DtoModules.packages();
-        assertEquals(3, pacakges.length);
+    public void setBroker(Broker broker);
 
-        Class<?>[] modules = DtoModules.extensionClasses();
-        assertEquals(3, modules.length);
-
-    }
 }

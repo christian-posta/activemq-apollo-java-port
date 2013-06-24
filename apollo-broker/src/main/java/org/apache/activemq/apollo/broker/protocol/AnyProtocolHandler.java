@@ -16,17 +16,13 @@
  */
 package org.apache.activemq.apollo.broker.protocol;
 
-import org.apache.activemq.apollo.broker.BrokerConnection;
 import org.apache.activemq.apollo.broker.ProtocolException;
 import org.apache.activemq.apollo.dto.AcceptingConnectorDTO;
-import org.apache.activemq.apollo.dto.ConnectionStatusDTO;
 import org.apache.activemq.apollo.dto.DetectDTO;
 import org.apache.activemq.apollo.dto.ProtocolDTO;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.Task;
-import org.fusesource.hawtdispatch.transport.ProtocolCodec;
 
-import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;

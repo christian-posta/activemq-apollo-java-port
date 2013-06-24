@@ -60,7 +60,7 @@ public class ClassFinder<T> {
                     try {
                         classes.add(loader.loadClass(name));
                     } catch (ClassNotFoundException e) {
-                        LOG.debug("Could not load class %s when using class loader %s", name, loader);
+                        LOG.debug("Could not load class {} when using class loader {}", name, loader);
                     }
                 }
 
@@ -79,7 +79,7 @@ public class ClassFinder<T> {
             try {
                 distinct.add((T)aClass.cast(aClass.newInstance()));
             } catch (Throwable e) {
-                LOG.debug("Could not load class %s when using class loader %s", clazz.getName(), clazz.getClassLoader());
+                LOG.debug("Could not load class {} when using class loader {}", clazz.getName(), clazz.getClassLoader());
 
             }
         }
