@@ -16,6 +16,8 @@
  */
 package org.apache.activemq.apollo.broker;
 
+import org.apache.activemq.apollo.broker.protocol.DummyProtocol;
+import org.apache.activemq.apollo.util.ServiceControl;
 import org.fusesource.hawtdispatch.Task;
 import org.junit.Test;
 
@@ -23,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Map;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -37,33 +40,19 @@ public class AnyProtocolDetectionTest {
         Broker broker = new Broker();
         final AcceptingConnector connector = new AcceptingConnector(broker, "test-connector");
 
-        connector.start(new Task() {
+        ServiceControl.start(connector);
 
-            @Override
-            public void run() {
-                runTest(connector, new Task() {
+        assertTrue(connector.getServiceState().isStarted());
 
-                    @Override
-                    public void run() {
-                        System.out.println("Test has ended... shutting down connector");
-                        connector.stop(new Task() {
-                            @Override
-                            public void run() {
-                                System.out.println("Connector has stopped.");
-                            }
-                        });
-                    }
-                });
-            }
-        });
-
-        Thread.sleep(2000);
+        runTest(connector);
+        Thread.sleep(1000);
         assertConnection(connector);
+        ServiceControl.stop(connector);
         System.out.println("Shutting down test..");
     }
 
-    private void runTest(final AcceptingConnector connector, Task task) {
-        // perform test here...
+    private void runTest(final AcceptingConnector connector) {
+
         System.out.println("Running test...");
         Socket socket = new Socket();
         int port = ((InetSocketAddress) connector.getSocketAddress()).getPort();
@@ -75,11 +64,16 @@ public class AnyProtocolDetectionTest {
             throw new RuntimeException(e);
         }
 
-        task.run();
+
     }
 
     private void assertConnection(AcceptingConnector connector) {
-        Map<Long, BrokerConnection> connection = connector.getBroker().getConnections();
-        assertTrue(connection.size() > 0);
+        System.out.println("asserting connection");
+        Map<Long, BrokerConnection> connections = connector.getBroker().getConnections();
+        assertTrue(connections.size() > 0);
+        BrokerConnection connection = connections.values().iterator().next();
+        assertNotNull(connection);
+        assertTrue(connection.getProtocolHandler() instanceof DummyProtocol.DummyProtocolHandler);
+        assertTrue(connection.getTransport().getProtocolCodec() instanceof DummyProtocol.DummyProtocolCodec);
     }
 }

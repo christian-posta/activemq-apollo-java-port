@@ -31,110 +31,12 @@ import java.io.IOException;
 public class DummyProtocol implements Protocol{
     @Override
     public ProtocolHandler createProtocolHandler() {
-        return new ProtocolHandler() {
-            @Override
-            public String getProtocol() {
-                return "dummy-stomp";
-            }
-
-            @Override
-            public String getSessionId() {
-                return null;
-            }
-
-            @Override
-            public BrokerConnection getConnection() {
-                return null;
-            }
-
-            @Override
-            public ConnectionStatusDTO createConnectionStatus(boolean debug) {
-                return null;
-            }
-
-            @Override
-            public void onTransportCommand(Object o) {
-            }
-
-            @Override
-            public void onTransportFailure(IOException e) {
-            }
-
-            @Override
-            public void onTransportConnected() {
-            }
-
-            @Override
-            public void onTransportDisconnected() {
-            }
-
-            @Override
-            public void setConnection(BrokerConnection connection) {
-            }
-        };
+        return new DummyProtocolHandler();
     }
 
     @Override
     public ProtocolCodec createProtocolCodec(Connector connector) {
-        return new ProtocolCodec() {
-            @Override
-            public void setTransport(Transport transport) {
-            }
-
-            @Override
-            public Object read() throws IOException {
-                return null;
-            }
-
-            @Override
-            public void unread(byte[] bytes) {
-            }
-
-            @Override
-            public long getReadCounter() {
-                return 0;
-            }
-
-            @Override
-            public long getLastReadSize() {
-                return 0;
-            }
-
-            @Override
-            public int getReadBufferSize() {
-                return 0;
-            }
-
-            @Override
-            public int getWriteBufferSize() {
-                return 0;
-            }
-
-            @Override
-            public BufferState write(Object o) throws IOException {
-                return null;
-            }
-
-            @Override
-            public BufferState flush() throws IOException {
-                return null;
-            }
-
-            @Override
-            public boolean full() {
-                return false;
-            }
-
-            @Override
-            public long getWriteCounter() {
-                return 0;
-            }
-
-            @Override
-            public long getLastWriteSize() {
-                return 0;
-            }
-        };
+        return new DummyProtocolCodec();
     }
 
     @Override
@@ -160,5 +62,107 @@ public class DummyProtocol implements Protocol{
     @Override
     public String getId() {
         return "dummy-stomp";
+    }
+
+    public static class DummyProtocolCodec implements ProtocolCodec {
+        @Override
+        public void setTransport(Transport transport) {
+        }
+
+        @Override
+        public Object read() throws IOException {
+            return null;
+        }
+
+        @Override
+        public void unread(byte[] bytes) {
+        }
+
+        @Override
+        public long getReadCounter() {
+            return 0;
+        }
+
+        @Override
+        public long getLastReadSize() {
+            return 0;
+        }
+
+        @Override
+        public int getReadBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public int getWriteBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public BufferState write(Object o) throws IOException {
+            return null;
+        }
+
+        @Override
+        public BufferState flush() throws IOException {
+            return null;
+        }
+
+        @Override
+        public boolean full() {
+            return false;
+        }
+
+        @Override
+        public long getWriteCounter() {
+            return 0;
+        }
+
+        @Override
+        public long getLastWriteSize() {
+            return 0;
+        }
+    }
+
+    public static class DummyProtocolHandler implements ProtocolHandler{
+        @Override
+        public String getProtocol() {
+            return "dummy-stomp";
+        }
+
+        @Override
+        public String getSessionId() {
+            return null;
+        }
+
+        @Override
+        public BrokerConnection getConnection() {
+            return null;
+        }
+
+        @Override
+        public ConnectionStatusDTO createConnectionStatus(boolean debug) {
+            return null;
+        }
+
+        @Override
+        public void onTransportCommand(Object o) {
+        }
+
+        @Override
+        public void onTransportFailure(IOException e) {
+        }
+
+        @Override
+        public void onTransportConnected() {
+        }
+
+        @Override
+        public void onTransportDisconnected() {
+        }
+
+        @Override
+        public void setConnection(BrokerConnection connection) {
+        }
     }
 }
