@@ -17,6 +17,7 @@
 package org.apache.activemq.apollo.util;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public final class DtoModules {
 
     public static Class<?>[] extensionClasses(){
         List<DtoModule> singletons = finder.getSingletons();
-        LinkedList<Class<?>> rcList = new LinkedList<Class<?>>();
+        LinkedHashSet<Class<?>> rcList = new LinkedHashSet<Class<?>>();
 
         for (DtoModule module : singletons) {
             rcList.addAll(Arrays.asList(module.extensionClasses()));
