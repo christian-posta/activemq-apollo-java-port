@@ -8,10 +8,8 @@ the original [ActiveMQ]((http://activemq.apache.org). It accomplishes this
 using a radically different threading and message dispatching 
 [architecture](documentation/architecture.html). 
 
-In it’s current incarnation, Apollo only supports the STOMP protocol but just
-like the original ActiveMQ, it’s been designed to be a multi protocol broker.
-In future versions it should get OpenWire support so it can be compatible with
-ActiveMQ 5.x JMS clients.
+In this particular incarnation, we try to port the original Scala code to Java.
+
 
 ## Features
 
