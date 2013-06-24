@@ -16,7 +16,7 @@
  */
 package org.apache.activemq.apollo.broker;
 
-import com.sun.corba.se.pept.protocol.ProtocolHandler;
+import org.apache.activemq.apollo.broker.protocol.ProtocolHandler;
 import org.apache.activemq.apollo.dto.ConnectionStatusDTO;
 import org.fusesource.hawtdispatch.Task;
 import org.fusesource.hawtdispatch.transport.ProtocolCodec;
@@ -80,7 +80,7 @@ public class BrokerConnection extends AbstractConnection implements Connection{
             if(securedSession != null) return securedSession.getPeerX509Certificates();
         }
 
-        return new X509Certificate[0];        1
+        return new X509Certificate[0];
     }
 
     public ConnectionStatusDTO getConnectionStatus(boolean debug) {
