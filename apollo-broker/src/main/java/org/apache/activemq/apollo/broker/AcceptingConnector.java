@@ -286,7 +286,7 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
             connection.setProtocolHandler(protocol.createProtocolHandler());
             connection.setTransport(transport);
 
-            LOG.debug("Adding new connection: {}" + connection.getId());
+            LOG.debug("Adding new connection: {}", connection.getId());
             broker.getConnections().put(connection.getId(), connection);
 
             broker.getCurrentPeriod().setMaxConnections(Math.max(broker.getConnections().size(), broker.getCurrentPeriod().getMaxConnections()));
@@ -314,4 +314,7 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
         }
     }
 
+    public void setConfig(AcceptingConnectorDTO config) {
+        this.config = config;
+    }
 }

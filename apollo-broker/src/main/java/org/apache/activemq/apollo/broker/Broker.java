@@ -20,6 +20,7 @@ import org.apache.activemq.apollo.dto.BrokerDTO;
 import org.apache.activemq.apollo.util.ApolloThreadPool;
 import org.apache.activemq.apollo.util.BaseService;
 import org.fusesource.hawtdispatch.Dispatch;
+import org.fusesource.hawtdispatch.DispatchQueue;
 import org.fusesource.hawtdispatch.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
