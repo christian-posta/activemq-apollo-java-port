@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.broker.jaxb;
 
+import org.apache.activemq.apollo.broker.Broker;
+import org.apache.activemq.apollo.broker.BrokerFactory;
 import org.apache.activemq.apollo.util.URISupport;
 import org.apache.activemq.apollo.dto.BrokerDTO;
 import org.apache.activemq.apollo.dto.XmlCodec;

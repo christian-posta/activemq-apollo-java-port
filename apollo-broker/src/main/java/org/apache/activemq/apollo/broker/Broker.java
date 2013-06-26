@@ -67,7 +67,7 @@ public class Broker extends BaseService {
     private PeriodStat currentPeriod;
     private long maxConnectionsIn5min;
 
-    protected Broker() {
+    public Broker() {
         super(Dispatch.createQueue("broker"));
         connectors = new LinkedHashMap<String, Connector>();
         connections = new LinkedHashMap<Long, BrokerConnection>();

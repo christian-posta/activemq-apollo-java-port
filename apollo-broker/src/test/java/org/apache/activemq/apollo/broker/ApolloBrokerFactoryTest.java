@@ -16,27 +16,29 @@
  */
 package org.apache.activemq.apollo.broker;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import java.net.URI;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class XmlBrokerFactoryTest {
+public class ApolloBrokerFactoryTest {
 
-    XmlBrokerFactory factory;
-
-    @Before
-    public void before() {
-        factory = new XmlBrokerFactory();
-
+    @Test
+    public void testCreateNullBroker() {
+        Broker broker = ApolloBrokerFactory.createBroker(null);
+        assertNull(broker);
     }
 
     @Test
-    public void testResolveConfigUrl() throws Exception {
-        URI brokerURI = new URI("file://test/location/here");
-        factory.resolveConfigUrl(brokerURI);
+    public void testCreateBroker() throws InterruptedException {
+        String file = "dummyApollo.xml";
+        // let's make sure we can find the file on the classpath
+        assertNotNull(Thread.currentThread().getContextClassLoader().getResource(file));
+
+        Broker broker = ApolloBrokerFactory.createBroker("xml:classpath:" +  file);
+        assertNotNull(broker);
     }
 }
