@@ -18,12 +18,18 @@ package org.apache.activemq.apollo.broker;
 
 import org.apache.activemq.apollo.broker.protocol.DummyProtocol;
 import org.apache.activemq.apollo.util.ServiceControl;
+import org.fusesource.hawtdispatch.Dispatch;
+import org.fusesource.hawtdispatch.DispatchQueue;
+import org.fusesource.hawtdispatch.Metrics;
 import org.fusesource.hawtdispatch.Task;
+import org.fusesource.hawtdispatch.internal.SerialDispatchQueue;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -34,20 +40,31 @@ import static org.junit.Assert.assertTrue;
 public class AnyProtocolDetectionTest {
 
     @Test
-    public void testFoo() throws InterruptedException {
+    public void testDetectDummyProtocol() throws InterruptedException {
+        Dispatch.profile(true);
         System.out.println("Starting test..");
         // start up a connector
         Broker broker = new Broker();
         final AcceptingConnector connector = new AcceptingConnector(broker, "test-connector");
+        connector.start(new Task() {
 
-        ServiceControl.start(connector);
+            @Override
+            public void run() {
+                assertTrue(connector.getServiceState().isStarted());
+                runTest(connector);
+            }
+        });
 
-        assertTrue(connector.getServiceState().isStarted());
 
-        runTest(connector);
+        // would like to one day get rid of this sleep..
         Thread.sleep(1000);
         assertConnection(connector);
+
         ServiceControl.stop(connector);
+        List<Metrics> metrics = Dispatch.metrics();
+        for (Metrics m : metrics) {
+            System.out.println(m.toString());
+        }
         System.out.println("Shutting down test..");
     }
 
