@@ -16,27 +16,8 @@
  */
 package org.apache.activemq.apollo.broker;
 
-import java.util.List;
-
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class PeriodStat {
-    private long maxConnections = 0L;
-
-    public static PeriodStat apply(List<PeriodStat> values) {
-        PeriodStat rc = new PeriodStat();
-        for (PeriodStat s : values) {
-            rc.maxConnections = Math.min(rc.maxConnections, s.maxConnections);
-        }
-        return rc;
-    }
-
-    public long getMaxConnections() {
-        return maxConnections;
-    }
-
-    public void setMaxConnections(long maxConnections) {
-        this.maxConnections = maxConnections;
-    }
+public class VirtualHost {
 }

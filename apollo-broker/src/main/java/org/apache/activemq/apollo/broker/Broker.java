@@ -16,7 +16,9 @@
  */
 package org.apache.activemq.apollo.broker;
 
+import org.apache.activemq.apollo.dto.AcceptingConnectorDTO;
 import org.apache.activemq.apollo.dto.BrokerDTO;
+import org.apache.activemq.apollo.dto.VirtualHostDTO;
 import org.apache.activemq.apollo.filter.FilterException;
 import org.apache.activemq.apollo.filter.Filterable;
 import org.apache.activemq.apollo.filter.XPathExpression;
@@ -25,6 +27,7 @@ import org.apache.activemq.apollo.util.ApolloThreadPool;
 import org.apache.activemq.apollo.util.BaseService;
 import org.apache.activemq.apollo.util.ClassFinder;
 import org.apache.activemq.apollo.util.FileSupport;
+import org.fusesource.hawtbuf.AsciiBuffer;
 import org.fusesource.hawtbuf.Buffer;
 import org.fusesource.hawtbuf.BufferInputStream;
 import org.fusesource.hawtdispatch.Dispatch;
@@ -39,6 +42,7 @@ import javax.management.openmbean.CompositeData;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -50,8 +54,11 @@ public class Broker extends BaseService {
 
     private Logger LOG = LoggerFactory.getLogger(getClass().getName());
 
+    // JMX mbea server
     private static MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
+    private static final int SERVICE_TIMEOUT = 1000 * 5;
 
+    public static final ThreadPoolExecutor BLOCKABLE_THREAD_POOL = ApolloThreadPool.INSTANCE;
 
     public static final Long MAX_JVM_HEAP_SIZE = getMaxJvmHeapSize();
 
@@ -64,35 +71,60 @@ public class Broker extends BaseService {
         }
     }
 
-    private BrokerDTO config;
-
-    private File tmp;
-    private Map<String, Connector> connectors;
-    private Map<Long, BrokerConnection> connections;
-
-    public static final ThreadPoolExecutor BLOCKABLE_THREAD_POOL = ApolloThreadPool.INSTANCE;
-    private final int SERVICE_TIMEOUT = 1000 * 5;
-    private final BufferPools bufferPools = new BufferPools();
-    private long connectionIdCounter;
-    private KeyStorage keyStorage;
-    private int autoTunedSendReceiveBufferSize;
-    private PeriodStat currentPeriod;
-    private long maxConnectionsIn5min;
+    // properties of the runtime environment
     private String version;
     private String os;
     private String jvm;
     private Long maxFDLimit;
+    private Object container;
+
+    private File tmp;
+
+    private BrokerDTO config = new BrokerDTO();
+
+    private final BufferPools bufferPools = new BufferPools();
+    private long connectionIdCounter;
+    private KeyStorage keyStorage;
+
+    private int autoTunedSendReceiveBufferSize;
+    private PeriodStat currentPeriod = new PeriodStat();;
+    private long maxConnectionsIn5min;
+
+    private volatile VirtualHost defaultVirtualHost = null;
+    private final Map<AsciiBuffer, VirtualHost> virtualHosts = new LinkedHashMap<AsciiBuffer, VirtualHost>();
+    private final Map<AsciiBuffer, VirtualHost> virtualHostsByHostname = new LinkedHashMap<AsciiBuffer, VirtualHost>();
+
+    // This is a copy of the virtual_hosts_by_hostname variable which
+    // can be accessed by any thread.
+    private volatile Map<AsciiBuffer, VirtualHost> cowVirtualHostsByHostname = new HashMap<AsciiBuffer, VirtualHost>();
+
+    private Map<String, Connector> connectors = new LinkedHashMap<String, Connector>();;
+    private Map<Long, BrokerConnection> connections = new LinkedHashMap<Long, BrokerConnection>();
+
 
     private volatile long now = System.currentTimeMillis();
 
     public Broker() {
         super(Dispatch.createQueue("broker"));
-        connectors = new LinkedHashMap<String, Connector>();
-        connections = new LinkedHashMap<Long, BrokerConnection>();
-        currentPeriod = new PeriodStat();
-
         initXPathEvaluator();
+        initDefaultVirtualHostConfig();
+        initDefaultConnectorConfig();
     }
+
+    private void initDefaultConnectorConfig() {
+        AcceptingConnectorDTO rc = new AcceptingConnectorDTO();
+        rc.id = "default";
+        rc.bind = "tcp://0.0.0.0:0";
+        config.connectors.add(rc);
+    }
+
+    private void initDefaultVirtualHostConfig() {
+        VirtualHostDTO rc = new VirtualHostDTO();
+        rc.id = "default";
+        rc.host_names.add("localhost");
+        config.virtual_hosts.add(rc);
+    }
+
     // Make sure XPATH selector support is enabled and optimize a little.
     private void initXPathEvaluator() {
         XPathExpression.XPATH_EVALUATOR_FACTORY = new XPathExpression.XPathEvaluatorFactory() {
@@ -173,7 +205,45 @@ public class Broker extends BaseService {
         return maxFDLimit;
     }
 
+    public void tuneSendReceiveBuffers() {
+        maxConnectionsIn5min = Math.max(maxConnectionsIn5min, currentPeriod.getMaxConnections());
+        if (maxConnectionsIn5min == 0) {
+            autoTunedSendReceiveBufferSize = 64 * 1024;
+        } else {
+            Long x = MAX_JVM_HEAP_SIZE;
 
+            // Lets only use 1/8th of the heap for connection buffers.
+            x = x / 8;
+
+            // 1/2 for send buffers, the other 1/2 for receive buffers.
+            x = x / 2;
+            // Ok, how much space can we use per connection?
+
+            x = x / maxConnectionsIn5min;
+            // Drop the bottom bits so that we are working /w 1k increments.
+            x = x & 0xFFFFFF00;
+
+            // Constrain the result to be between a 2k and a 64k buffer.
+            autoTunedSendReceiveBufferSize = Math.min(Math.max(x.intValue(), 2 * 1024), 64 * 1024);
+
+            // Basically this means that we will use a 64k send/receive buffer
+            // for the first 1024 connections established and then the buffer
+            // size will start getting reduced down until it gets to 2k buffers.
+            // Which will occur when you get to about 32,000 connections.
+
+            for (Connector c : this.connectors.values()) {
+                c.updateBufferSettings();
+            }
+        }
+    }
+
+    public Object getContainer() {
+        return container;
+    }
+
+    public void setContainer(Object container) {
+        this.container = container;
+    }
 
     public BrokerDTO getConfig() {
         return config;
@@ -251,35 +321,5 @@ public class Broker extends BaseService {
         return maxConnectionsIn5min;
     }
 
-    public void tuneSendReceiveBuffers() {
-        maxConnectionsIn5min = Math.max(maxConnectionsIn5min, currentPeriod.getMaxConnections());
-        if (maxConnectionsIn5min == 0) {
-            autoTunedSendReceiveBufferSize = 64 * 1024;
-        } else {
-            Long x = MAX_JVM_HEAP_SIZE;
 
-            // Lets only use 1/8th of the heap for connection buffers.
-            x = x / 8;
-
-            // 1/2 for send buffers, the other 1/2 for receive buffers.
-            x = x / 2;
-            // Ok, how much space can we use per connection?
-
-            x = x / maxConnectionsIn5min;
-            // Drop the bottom bits so that we are working /w 1k increments.
-            x = x & 0xFFFFFF00;
-
-            // Constrain the result to be between a 2k and a 64k buffer.
-            autoTunedSendReceiveBufferSize = Math.min(Math.max(x.intValue(), 2 * 1024), 64 * 1024);
-
-            // Basically this means that we will use a 64k send/receive buffer
-            // for the first 1024 connections established and then the buffer
-            // size will start getting reduced down until it gets to 2k buffers.
-            // Which will occur when you get to about 32,000 connections.
-
-            for (Connector c : this.connectors.values()) {
-                c.updateBufferSettings();
-            }
-        }
-    }
 }
