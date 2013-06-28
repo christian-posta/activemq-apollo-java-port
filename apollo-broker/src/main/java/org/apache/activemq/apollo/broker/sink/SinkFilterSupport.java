@@ -14,22 +14,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.broker.sink;
 
 import org.fusesource.hawtdispatch.Task;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public abstract class Sink<T> {
+public class SinkFilterSupport<T> {
 
-    protected Task refiller;
+    private Sink<T> downstream;
 
-    public abstract boolean full();
-    public abstract boolean offer(T value);
-    public abstract Task refiller();
+    public SinkFilterSupport(Sink<T> downstream) {
+        this.downstream = downstream;
+    }
 
-    public void setRefiller(Task value) {
-        refiller = value;
+    public boolean full() {
+        return downstream.full();
+    }
+
+    public Task refiller() {
+        return downstream.refiller();
+    }
+
+    public void setRefiller(Task task) {
+        downstream.setRefiller(task);
+    }
+
+    public Sink<T> downstream() {
+        return downstream;
     }
 }

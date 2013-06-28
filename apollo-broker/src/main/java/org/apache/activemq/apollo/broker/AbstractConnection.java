@@ -16,6 +16,7 @@
  */
 package org.apache.activemq.apollo.broker;
 
+import org.apache.activemq.apollo.broker.sink.TransportSink;
 import org.apache.activemq.apollo.util.BaseService;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;

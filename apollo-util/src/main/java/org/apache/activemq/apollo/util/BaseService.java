@@ -210,12 +210,12 @@ public abstract class BaseService extends Dispatched implements Service {
         }
     }
 
-    public void scheduleReocurring(Long time, TimeUnit unit, Procedure func) {
+    public void scheduleReocurring(Long time, TimeUnit unit, Procedure0 func) {
         Long counter = startTransitionCounter;
         schedule(time, unit, func, counter);
     }
 
-    private void schedule(final Long time, final TimeUnit unit, final Procedure func, final Long counter) {
+    private void schedule(final Long time, final TimeUnit unit, final Procedure0 func, final Long counter) {
         dispatchQueue.executeAfter(time, unit, new Task() {
 
             @Override
