@@ -81,6 +81,15 @@
             <artifactId>hawtdispatch-transport</artifactId>
             <version>${hawtdispatch-version}</version>
         </dependency>
+
+        <!-- for optional web admin -->
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all-server</artifactId>
+            <version>${jetty-version}</version>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Testing dependencies -->
         <dependency>
             <groupId>junit</groupId>

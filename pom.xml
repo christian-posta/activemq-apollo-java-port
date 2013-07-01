@@ -173,6 +173,7 @@
       <module>apollo-util</module>
       <module>apollo-dto</module>
       <module>apollo-selector</module>
+      <module>apollo-web</module>
   </modules>
 
   <scm>

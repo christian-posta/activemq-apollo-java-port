@@ -16,17 +16,15 @@
  */
 package org.apache.activemq.apollo.broker;
 
-import org.apache.activemq.apollo.dto.AcceptingConnectorDTO;
-import org.apache.activemq.apollo.dto.BrokerDTO;
-import org.apache.activemq.apollo.dto.VirtualHostDTO;
+import org.apache.activemq.apollo.broker.security.Authenticator;
+import org.apache.activemq.apollo.broker.security.JaasAuthenticator;import org.apache.activemq.apollo.broker.security.ResourceKind;
+import org.apache.activemq.apollo.broker.web.WebServer;
+import org.apache.activemq.apollo.dto.*;
 import org.apache.activemq.apollo.filter.FilterException;
 import org.apache.activemq.apollo.filter.Filterable;
 import org.apache.activemq.apollo.filter.XPathExpression;
 import org.apache.activemq.apollo.filter.XalanXPathEvaluator;
-import org.apache.activemq.apollo.util.ApolloThreadPool;
-import org.apache.activemq.apollo.util.BaseService;
-import org.apache.activemq.apollo.util.ClassFinder;
-import org.apache.activemq.apollo.util.FileSupport;
+import org.apache.activemq.apollo.util.*;
 import org.fusesource.hawtbuf.AsciiBuffer;
 import org.fusesource.hawtbuf.Buffer;
 import org.fusesource.hawtbuf.BufferInputStream;
@@ -40,12 +38,12 @@ import org.xml.sax.InputSource;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
@@ -70,6 +68,8 @@ public class Broker extends BaseService {
             return Long.valueOf(1024 * 1024 * 1024); // assume default 1GB
         }
     }
+
+    private String id = "default";
 
     // properties of the runtime environment
     private String version;
@@ -101,8 +101,27 @@ public class Broker extends BaseService {
     private Map<String, Connector> connectors = new LinkedHashMap<String, Connector>();;
     private Map<Long, BrokerConnection> connections = new LinkedHashMap<Long, BrokerConnection>();
 
+    private CircularBuffer<PeriodStat> statsOf5Min = new CircularBuffer<PeriodStat>(5 * 60);
 
     private volatile long now = System.currentTimeMillis();
+
+    private WebServer webServer = null;
+
+    private Authenticator authenticator;
+
+    private static Authorizer authorizer;
+
+    static {
+        // todo:ceposta:security fill in authentication/authorization
+        authorizer = null;
+    }
+
+    private Logger securityLog = LOG;
+    private Logger auditLog = LOG;
+    private Logger connectionLog = LOG;
+    private Logger consoleLog = LOG;
+
+    private Map<CustomServiceDTO, Service> services = new HashMap<CustomServiceDTO,Service>();
 
     public Broker() {
         super(Dispatch.createQueue("broker"));
@@ -277,16 +296,197 @@ public class Broker extends BaseService {
         this.connections = connections;
     }
 
+    public Logger getConfigLog() {
+        return new MemoryLogger(LOG);
+    }
+
     public Logger getConnectionLog() {
-        return LOG;
+        return connectionLog;
     }
 
     public Logger getConsoleLog() {
-        return LOG;
+        return consoleLog;
     }
 
+    public Logger getAuditLog(){
+        return auditLog;
+    }
+
+    public Logger getSecurityLog(){
+        return securityLog;
+    }
+
+    /**
+     * Main entry to the broker... call this to start the broker
+     * @param onCompleted
+     */
     @Override
     protected void _start(Task onCompleted) {
+        this.id = config.id == null ? "default" : config.id;
+        initLogs();
+        logVersions();
+        checkFileLimit();
+
+        BrokerRegistry.INSTANCE.add(this);
+        scheduleBrokerTimeUpdate();
+        scheduleMaintenance();
+
+        LoggingTracker tracker = new LoggingTracker("broker startup", consoleLog, new Long(SERVICE_TIMEOUT));
+        applyUpdate(tracker);
+        tracker.callback(onCompleted);
+    }
+
+    private void applyUpdate(LoggingTracker tracker) {
+        initLogs();
+
+        resolveKeyStorage();
+        resolveAuthenticator();
+        Map<AsciiBuffer,VirtualHostDTO> hostConfigById = resolveHostConfigById();
+
+        CollectionSupport.DiffResult<AsciiBuffer> result = CollectionSupport.diff(virtualHosts.keySet(), hostConfigById.keySet());
+
+        // remove virtual hosts
+        for (AsciiBuffer id : result.getRemoved()) {
+            VirtualHost host = virtualHosts.remove(id);
+            ArrayList<String> hostNames = host.getConfig().host_names;
+            for (String hostName : hostNames) {
+                virtualHostsByHostname.remove(AsciiBuffer.ascii(hostName));
+            }
+            tracker.stop(host);
+        }
+
+        // update virtual hosts
+        // todo:ceposta NEXT STEP
+
+        // add virtual hosts
+
+    }
+
+    private Map<AsciiBuffer, VirtualHostDTO> resolveHostConfigById() {
+        HashMap<AsciiBuffer,VirtualHostDTO> rc = null;
+        for (VirtualHostDTO dto : config.virtual_hosts) {
+            rc.put(AsciiBuffer.ascii(dto.id), dto);
+        }
+        return rc;
+    }
+
+    private Authenticator resolveAuthenticator() {
+        if (config.authentication != null) {
+            Boolean enabled = config.authentication.enabled;
+            // default to enabled
+            if (enabled || enabled == null) {
+                authenticator = new JaasAuthenticator(config.authentication, securityLog);
+                authorizer = new Authorizer(this);
+            }
+            else {
+                authenticator = null;
+                authorizer = new Authorizer();
+            }
+        }
+        
+        return authenticator;
+    }
+
+    private KeyStorage resolveKeyStorage() {
+
+        if (config.key_storage != null) {
+            keyStorage = new KeyStorage(config.key_storage);
+        }
+
+        return keyStorage;
+    }
+
+    private void scheduleMaintenance() {
+        scheduleReocurring(100L, TimeUnit.MILLISECONDS, new Procedure0() {
+            @Override
+            public void execute() {
+                virtualHostMaintenance();
+                rollCurrentPeriod();
+                tuneSendReceiveBuffers();
+            }
+        });
+    }
+
+    private void rollCurrentPeriod() {
+        statsOf5Min.add(currentPeriod);
+        currentPeriod = new PeriodStat();
+        currentPeriod.setMaxConnections(connections.size());
+        maxConnectionsIn5min = PeriodStat.apply(statsOf5Min).getMaxConnections();
+    }
+
+    private void virtualHostMaintenance() {
+        Set<String> activeSessions = new LinkedHashSet<String>();
+        for (BrokerConnection c : connections.values()) {
+            activeSessions.add(c.getSessionId());
+        }
+
+        for (VirtualHost host : virtualHosts.values()) {
+            if (host.getServiceState().isStarted()) {
+                host.getRouter().removeTempDestinations(activeSessions);
+            }
+        }
+    }
+
+    private void scheduleBrokerTimeUpdate() {
+        scheduleReocurring(100L, TimeUnit.MILLISECONDS, new Procedure0() {
+            @Override
+            public void execute() {
+                Broker.this.now = System.currentTimeMillis();
+            }
+        });
+    }
+
+    private void checkFileLimit() {
+        if (maxFDLimit != null) {
+            consoleLog.info("OS is restricting the open file limit to: {}", maxFDLimit);
+            int minLimit = 500;
+            minLimit = estimateNeededFD(minLimit);
+            if (maxFDLimit < minLimit) {
+                consoleLog.warn("Please increase the process file limit using 'ulimit -n {} or configure lower limits on the broker connectors", minLimit);
+            }
+        }
+    }
+
+    private int estimateNeededFD(int minLimit) {
+        int rc = minLimit;
+
+        for (ConnectorTypeDTO connector : config.connectors) {
+
+            rc += connector.connection_limit == null ? 10000 : connector.connection_limit;
+        }
+
+        return rc;
+    }
+
+    private void logVersions() {
+        String locationInfo = resolveLocationInfo();
+        consoleLog.info("OS     : {}", os);
+        consoleLog.info("JVM    : {}", jvm);
+        consoleLog.info("Apollo : {}{}", this.version, resolveLocationInfo());
+    }
+
+    private String resolveLocationInfo() {
+        String apolloHome = System.getProperty("apollo.home");
+        if (apolloHome == null) {
+            apolloHome = "";
+        }else {
+            try {
+                apolloHome = "(at: " + new File(apolloHome).getCanonicalPath() + ")";
+            } catch (IOException e) {
+                apolloHome = "";
+            }
+        }
+
+        return apolloHome;
+    }
+
+    private void initLogs() {
+        LogCategoryDTO logCategory = config.log_category == null ? new LogCategoryDTO() : config.log_category;
+        String baseCategory = "org.apache.activemq.apollo.log.";
+        securityLog = LoggerFactory.getLogger(logCategory.security == null ? baseCategory + "security" : logCategory.security);
+        auditLog = LoggerFactory.getLogger(logCategory.audit == null ? baseCategory + "audit" : logCategory.audit);
+        connectionLog = LoggerFactory.getLogger(logCategory.connection == null ? baseCategory + "connection" : logCategory.connection);
+        consoleLog = LoggerFactory.getLogger(logCategory.console == null ? baseCategory + "console" : logCategory.console);
     }
 
     @Override
@@ -321,5 +521,20 @@ public class Broker extends BaseService {
         return maxConnectionsIn5min;
     }
 
+    public String getId() {
+        return id;
+    }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public ResourceKind getResourceKind() {
+        return ResourceKind.BrokerKind;
+    }
+
+    @Override
+    public String toString() {
+        return "broker: " + id;
+    }
 }

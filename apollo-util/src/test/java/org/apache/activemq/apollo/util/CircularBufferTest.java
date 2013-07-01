@@ -14,46 +14,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.util;
 
-import org.apache.activemq.apollo.dto.VirtualHostDTO;
-import org.apache.activemq.apollo.util.BaseService;
-import org.fusesource.hawtdispatch.DispatchQueue;
-import org.fusesource.hawtdispatch.Task;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class VirtualHost extends BaseService{
+public class CircularBufferTest {
 
-    private Router router;
-    private VirtualHostDTO config;
+    @Test
+    public void testHappyPath() {
+        CircularBuffer<Integer> cb = new CircularBuffer<Integer>(3);
+        cb.add(1);
+        cb.add(2);
+        cb.add(3);
+        assertEquals(3, cb.size());
+        cb.add(4);
+        assertEquals(3, cb.size());
+        cb.add(4);
+        assertEquals(3, cb.size());
+        cb.add(4);
+        assertEquals(4, (int) cb.get(0));
+        assertEquals(4, (int) cb.get(1));
+        assertEquals(4, (int) cb.get(2));
 
-    protected VirtualHost(DispatchQueue dispatchQueue) {
-        super(dispatchQueue);
+        cb.add(10, 1);
     }
 
-    @Override
-    protected void _start(Task onCompleted) {
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testAddToIndexLargerThanMax() {
+        CircularBuffer<Integer> cb = new CircularBuffer<Integer>(3);
+        cb.add(10, 1);
+
     }
 
-    @Override
-    protected void _stop(Task onCompleted) {
-    }
-
-    public Router getRouter() {
-        return router;
-    }
-
-    public void setRouter(Router router) {
-        this.router = router;
-    }
-
-    public VirtualHostDTO getConfig() {
-        return config;
-    }
-
-    public void setConfig(VirtualHostDTO config) {
-        this.config = config;
-    }
 }

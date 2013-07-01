@@ -20,6 +20,6 @@ package org.apache.activemq.apollo.broker.security;
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
 public enum ResourceKind {
-
+    BrokerKind;
     // todo:ceposta:security -- implement from Authorizer.scala
 }

@@ -14,46 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.broker.security;
 
-import org.apache.activemq.apollo.dto.VirtualHostDTO;
-import org.apache.activemq.apollo.util.BaseService;
-import org.fusesource.hawtdispatch.DispatchQueue;
-import org.fusesource.hawtdispatch.Task;
+import org.apache.activemq.apollo.dto.AuthenticationDTO;
+import org.apache.activemq.apollo.util.Procedure0;
+import org.slf4j.Logger;
+
+import java.util.Set;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class VirtualHost extends BaseService{
-
-    private Router router;
-    private VirtualHostDTO config;
-
-    protected VirtualHost(DispatchQueue dispatchQueue) {
-        super(dispatchQueue);
+public class JaasAuthenticator implements Authenticator {
+    public JaasAuthenticator(AuthenticationDTO authentication, Logger securityLog) {
     }
 
     @Override
-    protected void _start(Task onCompleted) {
+    public String authenticate(SecurityContext ctx, Procedure0 cb) {
+        return null;
     }
 
     @Override
-    protected void _stop(Task onCompleted) {
+    public String userName(SecurityContext ctx) {
+        return null;
     }
 
-    public Router getRouter() {
-        return router;
-    }
-
-    public void setRouter(Router router) {
-        this.router = router;
-    }
-
-    public VirtualHostDTO getConfig() {
-        return config;
-    }
-
-    public void setConfig(VirtualHostDTO config) {
-        this.config = config;
+    @Override
+    public Set<String> aclPrincipalKinds() {
+        return null;
     }
 }

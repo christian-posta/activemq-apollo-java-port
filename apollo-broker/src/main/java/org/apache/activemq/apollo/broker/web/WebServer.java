@@ -14,46 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
-
-import org.apache.activemq.apollo.dto.VirtualHostDTO;
-import org.apache.activemq.apollo.util.BaseService;
-import org.fusesource.hawtdispatch.DispatchQueue;
-import org.fusesource.hawtdispatch.Task;
+package org.apache.activemq.apollo.broker.web;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class VirtualHost extends BaseService{
-
-    private Router router;
-    private VirtualHostDTO config;
-
-    protected VirtualHost(DispatchQueue dispatchQueue) {
-        super(dispatchQueue);
-    }
-
-    @Override
-    protected void _start(Task onCompleted) {
-    }
-
-    @Override
-    protected void _stop(Task onCompleted) {
-    }
-
-    public Router getRouter() {
-        return router;
-    }
-
-    public void setRouter(Router router) {
-        this.router = router;
-    }
-
-    public VirtualHostDTO getConfig() {
-        return config;
-    }
-
-    public void setConfig(VirtualHostDTO config) {
-        this.config = config;
-    }
+public interface WebServer {
 }

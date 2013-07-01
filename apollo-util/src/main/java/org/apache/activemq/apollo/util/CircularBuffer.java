@@ -14,46 +14,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.util;
 
-import org.apache.activemq.apollo.dto.VirtualHostDTO;
-import org.apache.activemq.apollo.util.BaseService;
-import org.fusesource.hawtdispatch.DispatchQueue;
-import org.fusesource.hawtdispatch.Task;
+import java.util.ArrayList;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class VirtualHost extends BaseService{
+public class CircularBuffer<E> extends ArrayList<E>{
+    private int maxSize;
+    private int pos = 0;
 
-    private Router router;
-    private VirtualHostDTO config;
-
-    protected VirtualHost(DispatchQueue dispatchQueue) {
-        super(dispatchQueue);
+    public CircularBuffer(int maxSize) {
+        super(maxSize);
+        this.maxSize = maxSize;
     }
+
 
     @Override
-    protected void _start(Task onCompleted) {
+    public boolean add(E e) {
+        if (this.size() < this.maxSize) {
+            return super.add(e);
+        }
+        else {
+            onEvicted(this.get(pos));
+            super.set(pos, e);
+            pos++;
+            if (pos > maxSize) {
+                pos = 0;
+            }
+            return true;
+        }
     }
 
-    @Override
-    protected void _stop(Task onCompleted) {
+    public int getMaxSize() {
+        return maxSize;
     }
 
-    public Router getRouter() {
-        return router;
-    }
+    protected void onEvicted(E elem) {
 
-    public void setRouter(Router router) {
-        this.router = router;
-    }
-
-    public VirtualHostDTO getConfig() {
-        return config;
-    }
-
-    public void setConfig(VirtualHostDTO config) {
-        this.config = config;
     }
 }
