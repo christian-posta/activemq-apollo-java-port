@@ -347,6 +347,14 @@ public class Broker extends BaseService {
 
         CollectionSupport.DiffResult<AsciiBuffer> result = CollectionSupport.diff(virtualHosts.keySet(), hostConfigById.keySet());
 
+        // apply updates to the virtual hosts for configs that have changed
+        updateVirtualHosts(tracker, hostConfigById, result);
+
+        // apply updates to the connectors for configs that have changed
+        // todo:ceposta NEXT STEP.. fill in the updates for connectors
+    }
+
+    private void updateVirtualHosts(LoggingTracker tracker, Map<AsciiBuffer, VirtualHostDTO> hostConfigById, CollectionSupport.DiffResult<AsciiBuffer> result) {
         // remove virtual hosts
         for (AsciiBuffer id : result.getRemoved()) {
             VirtualHost host = virtualHosts.remove(id);
@@ -399,7 +407,24 @@ public class Broker extends BaseService {
         }
 
         // add virtual hosts
+        // these are new hosts not in the current config
+        for (AsciiBuffer id : result.getAdded()) {
+            final VirtualHostDTO config = hostConfigById.get(id);
+            final VirtualHost host = VirtualHostFactory.create(this, config);
+            if (host == null) {
+                consoleLog.warn("Could not create new virtual host: " + config.id);
+            } else {
+                virtualHosts.put(id, host);
 
+                for (String hostName : config.host_names) {
+                    virtualHostsByHostname.put(AsciiBuffer.ascii(hostName), host);
+                }
+                tracker.start(host);
+            }
+        }
+
+        cowVirtualHostsByHostname = new HashMap<AsciiBuffer, VirtualHost>(virtualHostsByHostname);
+        defaultVirtualHost = virtualHosts.get(config.virtual_hosts.get(0));
     }
 
     private Map<AsciiBuffer, VirtualHostDTO> resolveHostConfigById() {
