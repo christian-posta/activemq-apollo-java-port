@@ -27,4 +27,8 @@ public class Authorizer {
     public Authorizer() {
 
     }
+
+    public Authorizer(Broker broker, VirtualHost virtualHost) {
+
+    }
 }

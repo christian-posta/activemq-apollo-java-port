@@ -341,6 +341,8 @@ public class Broker extends BaseService {
 
         resolveKeyStorage();
         resolveAuthenticator();
+
+        // this is the current config (updated config in cases where config has changed)
         Map<AsciiBuffer,VirtualHostDTO> hostConfigById = resolveHostConfigById();
 
         CollectionSupport.DiffResult<AsciiBuffer> result = CollectionSupport.diff(virtualHosts.keySet(), hostConfigById.keySet());
@@ -356,7 +358,45 @@ public class Broker extends BaseService {
         }
 
         // update virtual hosts
-        // todo:ceposta NEXT STEP
+        for (AsciiBuffer id : result.getSame()) {
+
+            final VirtualHostDTO config = hostConfigById.get(id);
+            final VirtualHost host = virtualHosts.get(id);
+
+            // clear our list of hostNames -> VH mapping
+            for (String hostName : host.getConfig().host_names) {
+                virtualHostsByHostname.remove(hostName);
+            }
+
+            // if our config is a virtual host config
+            if (host.getConfig().getClass() == config.getClass()) {
+                host.update(config, tracker.task("update virtual host: " + host));
+                for (String newId : config.host_names) {
+                    // put the hostname mapping back
+                    virtualHostsByHostname.put(AsciiBuffer.ascii(newId), host);
+                }
+            } else {
+                // the DTO type changed! have to re-create
+                final Task onComplete = tracker.task("recreate virtual host: " + id);
+                host.stop(new Task() {
+
+                    @Override
+                    public void run() {
+                        VirtualHost hostRC = VirtualHostFactory.create(Broker.this, config);
+                        if (hostRC == null) {
+                            consoleLog.warn("Could not create virtual host: " + config.id);
+                            onComplete.run();
+                        } else {
+                            for (String newId : config.host_names) {
+                                // put the hostname mapping back
+                                virtualHostsByHostname.put(AsciiBuffer.ascii(newId), host);
+                            }
+                            hostRC.start(onComplete);
+                        }
+                    }
+                });
+            }
+        }
 
         // add virtual hosts
 
@@ -372,15 +412,15 @@ public class Broker extends BaseService {
 
     private Authenticator resolveAuthenticator() {
         if (config.authentication != null) {
-            Boolean enabled = config.authentication.enabled;
             // default to enabled
-            if (enabled || enabled == null) {
-                authenticator = new JaasAuthenticator(config.authentication, securityLog);
-                authorizer = new Authorizer(this);
-            }
-            else {
+            if (config.authentication.enabled == false) {
                 authenticator = null;
                 authorizer = new Authorizer();
+
+            }
+            else {
+                authenticator = new JaasAuthenticator(config.authentication, securityLog);
+                authorizer = new Authorizer(this);
             }
         }
         
@@ -536,5 +576,9 @@ public class Broker extends BaseService {
     @Override
     public String toString() {
         return "broker: " + id;
+    }
+
+    public Authenticator getAuthenticator() {
+        return authenticator;
     }
 }

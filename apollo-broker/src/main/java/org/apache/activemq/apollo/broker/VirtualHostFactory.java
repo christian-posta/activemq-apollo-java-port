@@ -16,21 +16,14 @@
  */
 package org.apache.activemq.apollo.broker;
 
-import org.apache.activemq.apollo.util.Service;
+import org.apache.activemq.apollo.dto.VirtualHostDTO;
 import org.fusesource.hawtdispatch.Task;
-
-import java.util.Set;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface Router extends Service{
-
-    public VirtualHost getVirtualHost();
-
-    public Queue getQueue(long dto);
-
-    public void removeTempDestinations(Set<String> activeConnections);
-
-    void applyUpdate(Task onComplete);
+public class VirtualHostFactory {
+    public static VirtualHost create(Broker broker, VirtualHostDTO config) {
+        return null;
+    }
 }
