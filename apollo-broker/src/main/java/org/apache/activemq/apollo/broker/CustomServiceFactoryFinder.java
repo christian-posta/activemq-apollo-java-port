@@ -14,17 +14,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker.web;
+package org.apache.activemq.apollo.broker;
 
+import org.apache.activemq.apollo.dto.CustomServiceDTO;
+import org.apache.activemq.apollo.util.ClassFinder;
 import org.apache.activemq.apollo.util.Service;
-import org.fusesource.hawtdispatch.Task;
-
-import java.net.URI;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface WebServer extends Service {
-    public void update(Task task);
-    public URI[] uris();
+public class CustomServiceFactoryFinder  {
+
+    private static ClassFinder<CustomServiceFactory> finder =
+            new ClassFinder<CustomServiceFactory>("META-INF/services/org.apache.activemq.apollo/custom-service-factory.index", CustomServiceFactory.class);
+
+    public static Service create(Broker broker, CustomServiceDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        for (CustomServiceFactory f : finder.getSingletons()) {
+            Service customService = f.create(broker, dto);
+            if (customService != null) {
+                return  customService;
+            }
+        }
+
+        return null;
+    }
+
+
 }

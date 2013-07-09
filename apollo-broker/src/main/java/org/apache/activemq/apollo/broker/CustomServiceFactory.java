@@ -14,17 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker.web;
+package org.apache.activemq.apollo.broker;
 
+import org.apache.activemq.apollo.dto.CustomServiceDTO;
 import org.apache.activemq.apollo.util.Service;
-import org.fusesource.hawtdispatch.Task;
-
-import java.net.URI;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface WebServer extends Service {
-    public void update(Task task);
-    public URI[] uris();
+public interface CustomServiceFactory {
+    public Service create(Broker broker, CustomServiceDTO dto);
 }

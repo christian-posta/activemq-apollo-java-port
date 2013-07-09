@@ -24,7 +24,7 @@ import org.apache.activemq.apollo.util.ClassFinder;
  */
 public class ConnectorFactoryFinder {
     private static ClassFinder<ConnectorFactory> finder =
-            new ClassFinder<ConnectorFactory>("META-INF/services/org.apache.activemq.apollo/protocol-factory.index", ConnectorFactory.class);
+            new ClassFinder<ConnectorFactory>("META-INF/services/org.apache.activemq.apollo/connector-factory.index", ConnectorFactory.class);
 
     public static Connector create(Broker broker, ConnectorTypeDTO dto) {
         if (dto == null) {

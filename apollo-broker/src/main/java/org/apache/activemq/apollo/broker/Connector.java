@@ -21,6 +21,7 @@ import org.apache.activemq.apollo.broker.security.SecuredResource;
 import org.apache.activemq.apollo.dto.ConnectorTypeDTO;
 import org.apache.activemq.apollo.dto.ProtocolDTO;
 import org.apache.activemq.apollo.dto.ServiceStatusDTO;
+import org.apache.activemq.apollo.util.Service;
 import org.fusesource.hawtdispatch.Task;
 
 import java.net.SocketAddress;
@@ -28,7 +29,7 @@ import java.net.SocketAddress;
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface Connector extends SecuredResource {
+public interface Connector extends SecuredResource, Service {
 
     public Broker getBroker();
     public String getId();

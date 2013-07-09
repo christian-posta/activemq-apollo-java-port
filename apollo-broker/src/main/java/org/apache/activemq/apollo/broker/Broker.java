@@ -19,6 +19,7 @@ package org.apache.activemq.apollo.broker;
 import org.apache.activemq.apollo.broker.security.Authenticator;
 import org.apache.activemq.apollo.broker.security.JaasAuthenticator;import org.apache.activemq.apollo.broker.security.ResourceKind;
 import org.apache.activemq.apollo.broker.web.WebServer;
+import org.apache.activemq.apollo.broker.web.WebServerFactoryFinder;
 import org.apache.activemq.apollo.dto.*;
 import org.apache.activemq.apollo.filter.FilterException;
 import org.apache.activemq.apollo.filter.Filterable;
@@ -340,19 +341,136 @@ public class Broker extends BaseService {
         initLogs();
 
         resolveKeyStorage();
+
         resolveAuthenticator();
 
+        checkVirtualHostConfigChanges(tracker);
+
+        checkConnectorConfigChanges(tracker);
+
+        checkServicesConfigChanges(tracker);
+
+        checkWebServerConfigChanges(tracker);
+
+    }
+
+    private void checkWebServerConfigChanges(LoggingTracker tracker) {
+        if (!config.web_admins.isEmpty()) {
+            if (webServer != null) {
+                webServer.update(tracker.task("update webserver: " + webServer));
+            }
+            else {
+                webServer = WebServerFactoryFinder.create(this);
+                if (webServer == null) {
+                    consoleLog.warn("Could not start administration interface.");
+                } else {
+                    tracker.start(webServer);
+                }
+            }
+        } else {
+            if (webServer != null) {
+                tracker.stop(webServer);
+                webServer = null;
+            }
+        }
+    }
+
+    private void checkServicesConfigChanges(LoggingTracker tracker) {
+        Set<CustomServiceDTO> servicesConfig = new LinkedHashSet<CustomServiceDTO>(config.services);
+        CollectionSupport.DiffResult<CustomServiceDTO> servicesConfigDiff = CollectionSupport.diff(services.keySet(), servicesConfig);
+        updateServices(tracker, servicesConfigDiff);
+    }
+
+    private void updateServices(LoggingTracker tracker, CollectionSupport.DiffResult<CustomServiceDTO> result) {
+
+        // remove services
+        for (CustomServiceDTO config : result.getRemoved()) {
+            Service service = services.get(config);
+            services.remove(config);
+            tracker.stop(service);
+        }
+
+        // add services
+        for (CustomServiceDTO config : result.getAdded()) {
+            Service service = CustomServiceFactoryFinder.create(this, config);
+            if (service == null) {
+                consoleLog.warn("Could not create custom service: " + config);
+            } else {
+                services.put(config, service);
+                tracker.start(service);
+            }
+        }
+    }
+
+    private void checkConnectorConfigChanges(LoggingTracker tracker) {
+        // apply updates to the connectors for configs that have changed
+        Map<String, ConnectorTypeDTO> connectorConfigById = resolveConnectorConfigById();
+
+        CollectionSupport.DiffResult<String> connectorConfigDiff = CollectionSupport.diff(connectors.keySet(), connectorConfigById.keySet());
+
+        updateConnectors(tracker, connectorConfigById, connectorConfigDiff);
+    }
+
+    private void updateConnectors(LoggingTracker tracker, Map<String, ConnectorTypeDTO> connectorConfigById, CollectionSupport.DiffResult<String> result) {
+        // remove connectors
+        for (String id : result.getRemoved()) {
+            Connector connector = connectors.get(id);
+            tracker.stop(connector);
+            connectors.remove(id);
+        }
+
+        // update existing connectors that may have changed
+        for (String id : result.getSame()) {
+
+            final Connector connector = connectors.get(id);
+            final ConnectorTypeDTO config = connectorConfigById.get(id);
+
+            if (connector.getConfig().getClass() == config.getClass()) {
+                connector.update(config, tracker.task("update connector: " + connector));
+            } else {
+                // The dto type changed.. so we have to re-create the connector.
+                final Task onComplete = tracker.task("recreate connector: " + connector);
+                connector.stop(new Task() {
+
+                    @Override
+                    public void run() {
+                        Connector newConnector = ConnectorFactoryFinder.create(Broker.this, config);
+                        if (newConnector == null) {
+                            consoleLog.warn("Could not recreate connector: " + config.id);
+                            onComplete.run();
+                        }else {
+                            connectors.put(config.id, connector);
+                            connector.start(onComplete);
+                        }
+
+                    }
+                });
+            }
+        }
+
+        // add new connectors that didn't already exist
+        for (String id : result.getAdded()) {
+            final ConnectorTypeDTO config = connectorConfigById.get(id);
+            Connector newConnector = ConnectorFactoryFinder.create(this, config);
+            if (newConnector == null) {
+                consoleLog.warn("Could not create new connector: " + config.id);
+            }else {
+                connectors.put(config.id, newConnector);
+                tracker.start(newConnector);
+            }
+        }
+    }
+
+    private void checkVirtualHostConfigChanges(LoggingTracker tracker) {
         // this is the current config (updated config in cases where config has changed)
         Map<AsciiBuffer,VirtualHostDTO> hostConfigById = resolveHostConfigById();
 
-        CollectionSupport.DiffResult<AsciiBuffer> result = CollectionSupport.diff(virtualHosts.keySet(), hostConfigById.keySet());
+        CollectionSupport.DiffResult<AsciiBuffer> virtualHostConfigDiff = CollectionSupport.diff(virtualHosts.keySet(), hostConfigById.keySet());
 
         // apply updates to the virtual hosts for configs that have changed
-        updateVirtualHosts(tracker, hostConfigById, result);
-
-        // apply updates to the connectors for configs that have changed
-        // todo:ceposta NEXT STEP.. fill in the updates for connectors
+        updateVirtualHosts(tracker, hostConfigById, virtualHostConfigDiff);
     }
+
 
     private void updateVirtualHosts(LoggingTracker tracker, Map<AsciiBuffer, VirtualHostDTO> hostConfigById, CollectionSupport.DiffResult<AsciiBuffer> result) {
         // remove virtual hosts
@@ -390,8 +508,8 @@ public class Broker extends BaseService {
 
                     @Override
                     public void run() {
-                        VirtualHost hostRC = VirtualHostFactory.create(Broker.this, config);
-                        if (hostRC == null) {
+                        VirtualHost newHost = VirtualHostFactory.create(Broker.this, config);
+                        if (newHost == null) {
                             consoleLog.warn("Could not create virtual host: " + config.id);
                             onComplete.run();
                         } else {
@@ -399,7 +517,7 @@ public class Broker extends BaseService {
                                 // put the hostname mapping back
                                 virtualHostsByHostname.put(AsciiBuffer.ascii(newId), host);
                             }
-                            hostRC.start(onComplete);
+                            newHost.start(onComplete);
                         }
                     }
                 });
@@ -428,9 +546,17 @@ public class Broker extends BaseService {
     }
 
     private Map<AsciiBuffer, VirtualHostDTO> resolveHostConfigById() {
-        HashMap<AsciiBuffer,VirtualHostDTO> rc = null;
+        HashMap<AsciiBuffer, VirtualHostDTO> rc = new HashMap<AsciiBuffer, VirtualHostDTO>();
         for (VirtualHostDTO dto : config.virtual_hosts) {
             rc.put(AsciiBuffer.ascii(dto.id), dto);
+        }
+        return rc;
+    }
+
+    private Map<String, ConnectorTypeDTO> resolveConnectorConfigById() {
+        LinkedHashMap<String, ConnectorTypeDTO> rc = new LinkedHashMap<String, ConnectorTypeDTO>();
+        for (ConnectorTypeDTO c : config.connectors) {
+            rc.put(c.id, c);
         }
         return rc;
     }
@@ -525,9 +651,9 @@ public class Broker extends BaseService {
 
     private void logVersions() {
         String locationInfo = resolveLocationInfo();
-        consoleLog.info("OS     : {}", os);
-        consoleLog.info("JVM    : {}", jvm);
-        consoleLog.info("Apollo : {}{}", this.version, resolveLocationInfo());
+        consoleLog.info("OS     : {}", os());
+        consoleLog.info("JVM    : {}", jvm());
+        consoleLog.info("Apollo : {}{}", this.version(), resolveLocationInfo());
     }
 
     private String resolveLocationInfo() {

@@ -16,15 +16,12 @@
  */
 package org.apache.activemq.apollo.broker.web;
 
-import org.apache.activemq.apollo.util.Service;
-import org.fusesource.hawtdispatch.Task;
-
-import java.net.URI;
+import org.apache.activemq.apollo.broker.Broker;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface WebServer extends Service {
-    public void update(Task task);
-    public URI[] uris();
+public interface WebServerFactory {
+
+    public WebServer create(Broker broker);
 }

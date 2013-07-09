@@ -16,15 +16,27 @@
  */
 package org.apache.activemq.apollo.broker.web;
 
-import org.apache.activemq.apollo.util.Service;
-import org.fusesource.hawtdispatch.Task;
-
-import java.net.URI;
+import org.apache.activemq.apollo.broker.Broker;
+import org.apache.activemq.apollo.util.ClassFinder;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public interface WebServer extends Service {
-    public void update(Task task);
-    public URI[] uris();
+public class WebServerFactoryFinder {
+    private static ClassFinder<WebServerFactory> finder =
+            new ClassFinder<WebServerFactory>("META-INF/services/org.apache.activemq.apollo/web-server-factory.index", WebServerFactory.class);
+
+    public static WebServer create(Broker broker) {
+        if (broker == null) {
+            return null;
+        }
+        for (WebServerFactory f : finder.getSingletons()) {
+            WebServer webServer = f.create(broker);
+            if (webServer != null) {
+                return webServer;
+            }
+        }
+
+        return null;
+    }
 }

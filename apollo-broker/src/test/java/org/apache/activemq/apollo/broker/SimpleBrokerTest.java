@@ -17,9 +17,11 @@
 package org.apache.activemq.apollo.broker;
 
 import org.apache.activemq.apollo.util.FileSupport;
+import org.fusesource.hawtdispatch.Task;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -74,6 +76,24 @@ public class SimpleBrokerTest {
     private String expectedVersion() {
         InputStream in = getClass().getResourceAsStream("version.txt");
         return FileSupport.readText(in);
+    }
+
+
+    @Test
+    public void testStartBroker() throws InterruptedException {
+        Broker broker = new Broker();
+        final CountDownLatch latch = new CountDownLatch(1);
+        broker.start(new Task() {
+
+            @Override
+            public void run() {
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+
+        // todo:ceposta NEXT STEP.. we left off getting the broker to run, but no VH created
     }
 
 }
