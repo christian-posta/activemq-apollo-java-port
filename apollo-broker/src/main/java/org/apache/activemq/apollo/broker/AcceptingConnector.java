@@ -17,9 +17,9 @@
 package org.apache.activemq.apollo.broker;
 
 import org.apache.activemq.apollo.broker.protocol.Protocol;
-import org.apache.activemq.apollo.broker.protocol.ProtocolFactory;
+import org.apache.activemq.apollo.broker.protocol.ProtocolFactoryFinder;
 import org.apache.activemq.apollo.broker.security.ResourceKind;
-import org.apache.activemq.apollo.broker.transport.TransportFactory;
+import org.apache.activemq.apollo.broker.transport.TransportFactoryFinder;
 import org.apache.activemq.apollo.dto.*;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.Task;
@@ -80,9 +80,9 @@ public class AcceptingConnector extends AbstractConnector implements Connector {
         accepted = 0L;
         connected = 0L;
 
-        protocol = ProtocolFactory.get(config.protocol != null ? config.protocol : "any");
+        protocol = ProtocolFactoryFinder.get(config.protocol != null ? config.protocol : "any");
         try {
-            transportServer = TransportFactory.bind(config.bind);
+            transportServer = TransportFactoryFinder.bind(config.bind);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

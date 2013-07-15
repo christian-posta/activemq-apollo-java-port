@@ -24,7 +24,7 @@ import org.fusesource.hawtdispatch.transport.TransportServer;
  *
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
  */
-public class TransportFactory {
+public class TransportFactoryFinder {
 
     public interface Provider {
         public TransportServer bind(String location) throws Exception;

@@ -21,14 +21,12 @@ import org.apache.activemq.apollo.util.ServiceControl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
@@ -50,7 +48,7 @@ public class BrokerTestSupport extends ApolloTestSupport {
     private static Broker createBroker(){
         Properties props = new Properties(System.getProperties());
         props.setProperty("testdatadir", "");
-        return ApolloBrokerFactory.createBroker(brokerConfigUri, props);
+        return BrokerFactoryFinder.createBroker(brokerConfigUri, props);
     }
 
     @Before

@@ -41,7 +41,7 @@ import static org.apache.activemq.apollo.broker.transport.TransportFactorySuppor
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
  * @author David Martin Clavo david(dot)martin(dot)clavo(at)gmail.com (logging improvement modifications)
  */
-public class TcpTransportFactory implements TransportFactory.Provider {
+public class TcpTransportFactory implements TransportFactoryFinder.Provider {
     private static final Logger LOG = LoggerFactory.getLogger(TcpTransportFactory.class);
 
     public TransportServer bind(String location) throws Exception {

@@ -69,7 +69,7 @@ public class AnyProtocolHandler extends AbstractProtocolHandler implements Proto
         discriminated = true;
 
         ProtocolDetected expectedProtocol = (ProtocolDetected) command;
-        Protocol realProtocol = ProtocolFactory.get(expectedProtocol.getId());
+        Protocol realProtocol = ProtocolFactoryFinder.get(expectedProtocol.getId());
         if (realProtocol == null) {
             throw new ProtocolException("No protocol handler available for protocol: " + expectedProtocol.getId());
         }

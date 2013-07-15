@@ -24,7 +24,7 @@ import java.util.Properties;
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public final class ApolloBrokerFactory {
+public final class BrokerFactoryFinder {
 
 
     private static ClassFinder<BrokerFactory> finder = new ClassFinder("META-INF/services/org.apache.activemq.apollo/broker-factory.index", BrokerFactory.class);

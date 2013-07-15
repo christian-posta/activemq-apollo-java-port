@@ -32,7 +32,7 @@ public class AnyProtocolCodec implements ProtocolCodec {
 
     private Connector connector;
     private Transport transport;
-    protected List<Protocol> protocols = ProtocolFactory.identifiableProtocols();
+    protected List<Protocol> protocols = ProtocolFactoryFinder.identifiableProtocols();
     protected ProtocolCodec next;
     protected ByteBuffer buffer;
 

@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public final class ProtocolFactory {
+public final class ProtocolFactoryFinder {
 
     private static ClassFinder<Protocol> finder = new ClassFinder<Protocol>("META-INF/services/org.apache.activemq.apollo/protocol-factory.index", Protocol.class);
 

@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
  */
-public class UdpTransportFactory implements TransportFactory.Provider {
+public class UdpTransportFactory implements TransportFactoryFinder.Provider {
     private static final Logger LOG = LoggerFactory.getLogger(UdpTransportFactory.class);
 
     public TransportServer bind(String location) throws Exception {

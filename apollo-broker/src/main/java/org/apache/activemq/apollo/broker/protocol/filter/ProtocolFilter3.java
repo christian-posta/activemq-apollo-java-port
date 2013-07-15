@@ -14,31 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker;
+package org.apache.activemq.apollo.broker.protocol.filter;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.apache.activemq.apollo.broker.protocol.ProtocolHandler;
+import org.apache.activemq.apollo.dto.ProtocolFilterDTO;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class ApolloBrokerFactoryTest {
+public interface ProtocolFilter3<T extends Object> {
+    public T filterInbound(T frame);
+    public T filterOutbound(T frame);
 
-    @Test
-    public void testCreateNullBroker() {
-        Broker broker = BrokerFactoryFinder.createBroker(null);
-        assertNull(broker);
-    }
-
-    @Test
-    public void testCreateBroker() throws InterruptedException {
-        String file = "dummyApollo.xml";
-        // let's make sure we can find the file on the classpath
-        assertNotNull(Thread.currentThread().getContextClassLoader().getResource(file));
-
-        Broker broker = BrokerFactoryFinder.createBroker("xml:classpath:" + file);
-        assertNotNull(broker);
+    public interface Provider {
+        public ProtocolFilter3 create(ProtocolFilterDTO dto, ProtocolHandler handler);
     }
 }
