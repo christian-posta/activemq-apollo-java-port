@@ -16,28 +16,13 @@
  */
 package org.apache.activemq.apollo.broker.protocol.filter;
 
-import org.apache.activemq.apollo.broker.protocol.ProtocolHandler;
 import org.apache.activemq.apollo.dto.ProtocolFilterDTO;
-import org.apache.activemq.apollo.util.ClassFinder;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public class ProtocolFilter3FactoryFinder {
+public interface ProtocolFilterDtoAware<T extends ProtocolFilterDTO> {
 
-    public static final ClassFinder<ProtocolFilter3.Provider> providers =
-            new ClassFinder<ProtocolFilter3.Provider>("META-INF/services/org.apache.activemq.apollo/protocol-filter-factory.index",
-                    ProtocolFilter3.Provider.class);
-
-    public ProtocolFilter3 create(ProtocolFilterDTO dto, ProtocolHandler handler) {
-        for (ProtocolFilter3.Provider p : providers.getSingletons()) {
-            ProtocolFilter3 rc = p.create(dto, handler);
-            if (rc != null) {
-                return rc;
-            }
-        }
-
-        throw new IllegalArgumentException("Cannot create a protocol filter for DTO: "+dto);
-    }
+    public void setDto(T dto);
 
 }

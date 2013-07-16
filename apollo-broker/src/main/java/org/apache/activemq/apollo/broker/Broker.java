@@ -166,7 +166,7 @@ public class Broker extends BaseService {
         };
     }
 
-    public ClassLoader classLoader() {
+    public static ClassLoader classLoader() {
         return ClassFinder.getDefaultClassLoader();
     }
 
