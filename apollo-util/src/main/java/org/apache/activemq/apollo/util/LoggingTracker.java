@@ -46,12 +46,12 @@ public class LoggingTracker extends TaskTracker{
     @Override
     protected Long onTimeout(long started, List<String> tasks) {
         if (status == null) {
-            LOG.info("%s is waiting on %s", name, mkString(tasks, ","));
+            LOG.info("{} is waiting on {}", name, mkString(tasks, ","));
             status = new LoggingTrackerStatus(started, tasks);
 
         }else {
             if (!tasks.equals(status.tasks)) {
-                LOG.info("%s is now waiting on %s", name, mkString(tasks, ","));
+                LOG.info("{} is now waiting on {}", name, mkString(tasks, ","));
                 status = new LoggingTrackerStatus(started, tasks);
             }
         }
@@ -65,7 +65,7 @@ public class LoggingTracker extends TaskTracker{
             @Override
             public void run() {
                 if (status != null) {
-                    LOG.info("%s is no longer waiting.  It waited a total of %d seconds.", name, ((System.currentTimeMillis() - status.start) / 1000));
+                    LOG.info("{} is no longer waiting.  It waited a total of {} seconds.", name, ((System.currentTimeMillis() - status.start) / 1000));
                     status = null;
                 }
                 handler.run();

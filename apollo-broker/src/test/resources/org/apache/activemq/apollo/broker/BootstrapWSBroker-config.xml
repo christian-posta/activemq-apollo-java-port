@@ -1,0 +1,4 @@
+<broker xmlns="http://activemq.apache.org/schema/activemq/apollo">
+
+    <connector id="websockets" bind="ws://0.0.0.0:0" />
+</broker>

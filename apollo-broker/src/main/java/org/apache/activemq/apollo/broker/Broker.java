@@ -357,6 +357,8 @@ public class Broker extends BaseService {
     private void checkWebServerConfigChanges(LoggingTracker tracker) {
         if (!config.web_admins.isEmpty()) {
             if (webServer != null) {
+                consoleLog.trace("updating webserver");
+
                 webServer.update(tracker.task("update webserver: " + webServer));
             }
             else {
@@ -364,6 +366,7 @@ public class Broker extends BaseService {
                 if (webServer == null) {
                     consoleLog.warn("Could not start administration interface.");
                 } else {
+                    consoleLog.trace("starting web server");
                     tracker.start(webServer);
                 }
             }
@@ -386,6 +389,9 @@ public class Broker extends BaseService {
         // remove services
         for (CustomServiceDTO config : result.getRemoved()) {
             Service service = services.get(config);
+
+            consoleLog.trace("removing service: " +  id);
+
             services.remove(config);
             tracker.stop(service);
         }
@@ -397,6 +403,8 @@ public class Broker extends BaseService {
                 consoleLog.warn("Could not create custom service: " + config);
             } else {
                 services.put(config, service);
+                consoleLog.trace("adding service: " +  id);
+
                 tracker.start(service);
             }
         }
@@ -416,16 +424,18 @@ public class Broker extends BaseService {
         for (String id : result.getRemoved()) {
             Connector connector = connectors.get(id);
             tracker.stop(connector);
+            consoleLog.trace("removing connector: "+ id);
             connectors.remove(id);
         }
 
         // update existing connectors that may have changed
-        for (String id : result.getSame()) {
+        for (final String id : result.getSame()) {
 
             final Connector connector = connectors.get(id);
             final ConnectorTypeDTO config = connectorConfigById.get(id);
 
             if (connector.getConfig().getClass() == config.getClass()) {
+                consoleLog.trace("updating connector: " +  id);
                 connector.update(config, tracker.task("update connector: " + connector));
             } else {
                 // The dto type changed.. so we have to re-create the connector.
@@ -440,6 +450,7 @@ public class Broker extends BaseService {
                             onComplete.run();
                         }else {
                             connectors.put(config.id, connector);
+                            consoleLog.trace("updating connector: " +  id);
                             connector.start(onComplete);
                         }
 
@@ -456,6 +467,7 @@ public class Broker extends BaseService {
                 consoleLog.warn("Could not create new connector: " + config.id);
             }else {
                 connectors.put(config.id, newConnector);
+                consoleLog.trace("creating connector: " +  id);
                 tracker.start(newConnector);
             }
         }
@@ -478,13 +490,14 @@ public class Broker extends BaseService {
             VirtualHost host = virtualHosts.remove(id);
             ArrayList<String> hostNames = host.getConfig().host_names;
             for (String hostName : hostNames) {
+                consoleLog.trace("removing virtual host: " +  id);
                 virtualHostsByHostname.remove(AsciiBuffer.ascii(hostName));
             }
             tracker.stop(host);
         }
 
         // update virtual hosts
-        for (AsciiBuffer id : result.getSame()) {
+        for (final AsciiBuffer id : result.getSame()) {
 
             final VirtualHostDTO config = hostConfigById.get(id);
             final VirtualHost host = virtualHosts.get(id);
@@ -496,6 +509,7 @@ public class Broker extends BaseService {
 
             // if our config is a virtual host config
             if (host.getConfig().getClass() == config.getClass()) {
+                consoleLog.trace("updating virtual host: " +  id);
                 host.update(config, tracker.task("update virtual host: " + host));
                 for (String newId : config.host_names) {
                     // put the hostname mapping back
@@ -517,6 +531,7 @@ public class Broker extends BaseService {
                                 // put the hostname mapping back
                                 virtualHostsByHostname.put(AsciiBuffer.ascii(newId), host);
                             }
+                            consoleLog.trace("updating virtual host: " +  id);
                             newHost.start(onComplete);
                         }
                     }
@@ -537,12 +552,17 @@ public class Broker extends BaseService {
                 for (String hostName : config.host_names) {
                     virtualHostsByHostname.put(AsciiBuffer.ascii(hostName), host);
                 }
+                consoleLog.trace("adding virtual host: " +  id);
                 tracker.start(host);
             }
         }
 
         cowVirtualHostsByHostname = new HashMap<AsciiBuffer, VirtualHost>(virtualHostsByHostname);
-        defaultVirtualHost = virtualHosts.get(config.virtual_hosts.get(0));
+        if (config.virtual_hosts != null && config.virtual_hosts.size() > 0) {
+            defaultVirtualHost = virtualHosts.get(config.virtual_hosts.get(0));
+        }else {
+            defaultVirtualHost = null;
+        }
     }
 
     private Map<AsciiBuffer, VirtualHostDTO> resolveHostConfigById() {
@@ -682,6 +702,7 @@ public class Broker extends BaseService {
 
     @Override
     protected void _stop(Task onCompleted) {
+        onCompleted.run();
     }
 
     public Long getNextConnectionId() {
