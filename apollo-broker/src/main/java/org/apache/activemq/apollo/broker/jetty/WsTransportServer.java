@@ -125,6 +125,8 @@ public class WsTransportServer extends BaseService implements TransportServer, B
                         resp.getOutputStream().println("{}");
                     }
 
+                    // this is what connects up the jetty websockets impl to our transports.. and jetty will make callbacks
+                    // to onMessage, onOpen, onClose, etc.
                     @Override
                     public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
                         return new WebSocketTransport(WsTransportServer.this, request, protocol);
@@ -361,5 +363,13 @@ public class WsTransportServer extends BaseService implements TransportServer, B
     @Override
     public void stop(final Runnable runnable) throws Exception {
         super.stop(new TaskWrapper(runnable));
+    }
+
+    public void addPendingConnects(WebSocketTransport transport) {
+        try {
+            this.pendingConnects.put(transport);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

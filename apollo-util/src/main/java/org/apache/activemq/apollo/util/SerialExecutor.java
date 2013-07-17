@@ -30,6 +30,7 @@ public class SerialExecutor implements Executor{
 
     private final AtomicBoolean triggered = new AtomicBoolean();
     private final ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<Runnable>();
+    public long outboundDrained = 0L;
 
 
     public SerialExecutor(Executor target) {

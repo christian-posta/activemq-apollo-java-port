@@ -36,17 +36,17 @@ public enum ServiceState {
     }
 
     // is on its way starting up
-    boolean isUpward() {
+    public boolean isUpward() {
         return isStarted() || isStarting() || isCreated();
     }
 
-    boolean isStartingOrStarted() {
+    public boolean isStartingOrStarted() {
         return isStarted() | isStarting();
     }
 
 
     // is on its way shutting down
-    boolean isDownward() {
+    public boolean isDownward() {
         return isStopped() | isStopping() | isFailed();
     }
 
