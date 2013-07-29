@@ -41,7 +41,7 @@ public class FileSupport {
     }
 
     // return bytes copied
-    private static long copy(InputStream in, OutputStream out) {
+    public static long copy(InputStream in, OutputStream out) {
         try {
             Long bytesCopied = 0L;
             byte[] buffer = new byte[8192];

@@ -16,6 +16,8 @@
  */
 package org.apache.activemq.apollo.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -35,5 +37,38 @@ public class FunctionUtils {
         }
 
         return builder.toString();
+    }
+
+    public static void using(InputStream is, Procedure0 proc) {
+
+        try {
+            proc.execute();
+        }finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+
+                }
+            }
+        }
+    }
+
+    public static String stripSuffix(String value, String suffix) {
+        if (value.indexOf(suffix) != -1) {
+            int pos = value.indexOf(suffix);
+            return value.substring(0, pos);
+        }else {
+            return value;
+        }
+    }
+
+    public static String stripPrefix(String value, String prefix) {
+        if (value.indexOf(prefix) != -1) {
+            int pos = value.indexOf(prefix);
+            return value.substring(pos + prefix.length(), value.length());
+        }else {
+            return value;
+        }
     }
 }
