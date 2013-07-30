@@ -41,14 +41,16 @@ public class BrokerTestSupport extends ApolloTestSupport {
     private Logger LOG = LoggerFactory.getLogger(getClass().getName());
 
 
-    static Broker broker;
+    protected Broker broker;
     protected int port = 0;
-    private static String brokerConfigUri = "xml:classpath:apollo.xml";
 
-    private static Broker createBroker(){
+    public String getBrokerConfigUri(){
+        return "xml:classpath:apollo.xml";
+    }
+    private Broker createBroker(){
         Properties props = new Properties(System.getProperties());
         props.setProperty("testdatadir", "");
-        return BrokerFactoryFinder.createBroker(brokerConfigUri, props);
+        return BrokerFactoryFinder.createBroker(getBrokerConfigUri(), props);
     }
 
     @Before
@@ -63,6 +65,7 @@ public class BrokerTestSupport extends ApolloTestSupport {
             broker.setTmp(new File(getTestDataDir(), "tmp"));
             broker.getTmp().mkdirs();
             ServiceControl.start(broker);
+            port = ((InetSocketAddress)broker.getSocketAddress()).getPort();
         } catch (Exception e) {
             e.printStackTrace();
         }

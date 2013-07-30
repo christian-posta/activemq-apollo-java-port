@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.net.SocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,7 @@ public class Broker extends BaseService {
     public static final ThreadPoolExecutor BLOCKABLE_THREAD_POOL = ApolloThreadPool.INSTANCE;
 
     public static final Long MAX_JVM_HEAP_SIZE = getMaxJvmHeapSize();
+    private Connector firstAcceptingConnector;
 
     private static Long getMaxJvmHeapSize() {
         try {
@@ -700,6 +702,11 @@ public class Broker extends BaseService {
         consoleLog = LoggerFactory.getLogger(logCategory.console == null ? baseCategory + "console" : logCategory.console);
     }
 
+    public SocketAddress getSocketAddress() {
+        Connector firstAcceptingConnector = getFirstAcceptingConnector();
+        return firstAcceptingConnector.getSocketAddress();
+    }
+
     @Override
     protected void _stop(Task onCompleted) {
         onCompleted.run();
@@ -752,5 +759,15 @@ public class Broker extends BaseService {
 
     public Authenticator getAuthenticator() {
         return authenticator;
+    }
+
+    public Connector getFirstAcceptingConnector() {
+        for (Connector connector : connectors.values()) {
+            if (connector instanceof AcceptingConnector) {
+                return connector;
+            }
+        }
+
+        return null;
     }
 }
