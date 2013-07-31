@@ -36,6 +36,12 @@ public class AmqpConnectionTest extends AmqpTestSupport{
 
     @Test
     public void testConnection() throws Exception {
+
+        // todo:ceposta NEXT STEPS: for some reason the AMQP magic isn't properly being sent? or
+        // parsed by the broker? unknown... but we cannot identify the protocol properly so hawtdispatch
+        // spins in an infinite loop.. note.. this could also be a bug in scala apollo? what happens if a
+        // buffer of all zeros (nulls) is sent? does the broker go toast?
+        // shoudl figure out whether this transport is properly converting the magic and sending it...
         AmqpConnectOptions options = new AmqpConnectOptions();
         System.out.println("Using port: " + port);
         options.setHost("localhost", port);
@@ -43,9 +49,9 @@ public class AmqpConnectionTest extends AmqpTestSupport{
         options.setPassword("password");
 
         final AmqpConnection connection = AmqpConnection.connect(options);
-        System.out.println("We should have a connection object");
 
         assertNotNull(connection);
+        System.out.println("We have connected");
         final AtomicBoolean success = new AtomicBoolean(false);
 
         connection.queue().execute(new Task(){

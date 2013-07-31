@@ -90,9 +90,6 @@ public class WebSocketTransport extends BaseService implements WebSocket.OnTextM
         });
         drainOutboundEvents.resume();
 
-
-        // TODO:ceposta NEXT STEPS... left off implement this transport...
-        // pay attention to the different executors, event listeners, and counters...
     }
 
     private SerialExecutor outboundExecutor = new SerialExecutor(getBlockingExecutor()){

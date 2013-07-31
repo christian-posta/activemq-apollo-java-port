@@ -14,45 +14,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.activemq.apollo.broker.protocol;
+package org.apache.activemq.apollo.amqp;
 
 import org.apache.activemq.apollo.broker.BrokerConnection;
+import org.apache.activemq.apollo.broker.protocol.ProtocolHandler;
 import org.apache.activemq.apollo.dto.ConnectionStatusDTO;
-import org.fusesource.hawtdispatch.Dispatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
  * @author <a href="http://www.christianposta.com/blog">Christian Posta</a>
  */
-public abstract class AbstractProtocolHandler implements ProtocolHandler {
-    private Logger LOG = LoggerFactory.getLogger(getClass().getName());
+public class AmqpProtocolHandler implements ProtocolHandler {
+    @Override
+    public String getProtocol() {
+        return null;
+    }
 
-    protected BrokerConnection connection;
+    @Override
+    public String getSessionId() {
+        return null;
+    }
 
-
-
+    @Override
     public BrokerConnection getConnection() {
-        return connection;
-    }
-
-    // todo:ceposta what about defer() ?
-
-    @Override
-    public void setConnection(BrokerConnection connection) {
-        this.connection = connection;
+        return null;
     }
 
     @Override
-    public void onTransportFailure(IOException e) {
-        LOG.info("Error in protocol handler, transport failed: ", e);
-        connection.stop(Dispatch.NOOP);
+    public ConnectionStatusDTO createConnectionStatus(boolean debug) {
+        return null;
     }
 
     @Override
     public void onTransportCommand(Object o) {
+    }
+
+    @Override
+    public void onTransportFailure(IOException e) {
     }
 
     @Override
@@ -64,7 +63,6 @@ public abstract class AbstractProtocolHandler implements ProtocolHandler {
     }
 
     @Override
-    public ConnectionStatusDTO createConnectionStatus(boolean debug) {
-        return new ConnectionStatusDTO();
+    public void setConnection(BrokerConnection connection) {
     }
 }
